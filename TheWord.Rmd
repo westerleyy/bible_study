@@ -14,6 +14,19 @@ library(topicmodels)
 library(ggplot2)
 library(lsa)
 library(stm)
+library(factoextra)
+library(text2vec)
+library(plotly)
+library(DT)
+
+#reading in bible
+all_bibles <- read_csv("bibles.csv")
+
+# filtering for gospels
+gospels <- all_bibles %>%
+  filter(str_detect(Verse, "Matthew|Mark|John|Luke"))
+gospels <- gospels %>%
+  mutate(Book = str_split(Verse, " ")[[1]][1])
 ```
 
 ### Introduction  
@@ -23,17 +36,64 @@ The New York Times bestseller list changes every week. But on the time scale of 
 This paper will therefore seek to test the hypothesis despite the linguistic and ease of readability differences, various versions of the Bible maintain a significant degree of similarity in terms of its topics, and sentiments. Furthermore, given that the Bible is effectively an agglomeration of religious treatises by various authors, stylistic differences should be retained even with the revisions. 
 
 ### Methodology and Data Sources  
-The Bible itself can be seen as a "multi-parallel corpora" (Xia and Yarowsky, 2017, p.448).
-```{r cars}
-summary(cars)
+The Bible itself can be seen as a "multi-parallel corpora" (Xia and Yarowsky, 2017, p.448) with multiple versions of what is essentially a highly similar corpus. Stylometric analyis (McDonald, 2014).  
+  
+First, this paper will seek to validate a commonly held opinion among Christians, and Bible scholars that among the various books within the Bible, the Gospels of Matthew, Mark, Luke, and John are among the most similar. In fact, the Gospels are also known as the Synoptic Gospels (Linmans, 1998; Murai, 2006) with corresponding sections among the four. Murai (2006) argues that from a network analysis perspective, they can be characterized as a series of multiple one-to-many relationships.  
+  
+Using the King James' Version of the Bible, each verse was collapsed into a row with each row comprising of verses from the same book. A document-feature matrix was then created. Stopwords, punctuation, and numbers were removed, every word was lower-cased and then stemmed. To reduce the number of dimensions, Principal Components Analysis (PCA) was performed. The scree plot suggests that each component captured relatively little of the variation between books. Furthermore, the biplot of the first two principal components does not support the hypothesis that the four Gospel books are relatively similar based on their variation. 
+```{r PCA, echo = FALSE}
+# extracting the name of each book
+# extracting the KJV
+# paste and collapse each verse grouped by book
+all_bibles <- all_bibles %>%
+  mutate(Verse = str_replace_all(Verse, c("1 " = "First", "2 " = "Second", "3 " = "Third")))
+books <- sapply(1:dim(all_bibles)[1], function(x){
+  book = str_split(all_bibles[x,1], " ")[[1]][1]
+  book
+})
+all_bibles$Book <- books
+kjv_collapsed <- all_bibles %>%
+  select(Book, `King James Bible`) %>%
+  group_by(Book) %>%
+  summarise(Verse = paste(`King James Bible`, collapse = " "))
+kjv_collapsed_vec <- kjv_collapsed$Verse %>%
+  unlist()
+names(kjv_collapsed_vec) <- unique(books)
+
+# create DFM
+# convert to matrix
+kjv_books_dfm <- dfm(kjv_collapsed_vec, tolower = T, remove = stopwords("english"), remove_punct = T, remove_numbers = T, stem = T)
+kjv_books_mat <- convert(kjv_books_dfm, to = "matrix")
+
+# PCA
+
+kjv_books_pca <- prcomp(kjv_books_mat, center = T, scale = T)
+
+kjv_books_pca_df <- kjv_books_pca$x %>%
+  as.data.frame()
+kjv_books_pca_df$group <- unique(books)
+
+fviz_eig(kjv_books_pca, addlabels = T,
+         main = "Screeplot of KJV Bible DFM's Principal Components")
+
+ggplot(kjv_books_pca_df, aes(PC1, PC2, label = group)) + 
+  geom_point() + 
+  geom_text(size = 3, nudge_y = 1) + 
+  coord_cartesian(xlim = c(-25, 25), ylim = c(-25, 25)) + 
+  labs(title = "First Two Principal Components of KJV Bible DFM",
+       subtitle = "Zoomed to -25:25,-25:25 for greater clarity")
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r cosine_similarity, echo=FALSE}
+cosine_similarity_mat <- sapply(40:43, function(x){
+  sapply(40:43, function(y){
+    cosine_similarity <- textstat_simil(kjv_books_dfm[x], kjv_books_dfm[y], method = "cosine")
+    round(cosine_similarity@x,3)*100
+  })
+})
+row.names(cosine_similarity_mat) <- c("Matthew", "Mark", "Luke", "John")
+colnames(cosine_similarity_mat) <- c("Matthew", "Mark", "Luke", "John")
+datatable(cosine_similarity_mat)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
