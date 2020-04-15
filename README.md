@@ -39,10 +39,10 @@
     <meta property="og:image" content="https://avatars2.githubusercontent.com/u/47231787?s=400&amp;v=4" /><meta property="og:site_name" content="GitHub" /><meta property="og:type" content="object" /><meta property="og:title" content="westerleyy/bible_study" /><meta property="og:url" content="https://github.com/westerleyy/bible_study" /><meta property="og:description" content="An NLP dive into the world&#39;s bestseller for the past 2000 years - westerleyy/bible_study" />
 
   <link rel="assets" href="https://github.githubassets.com/">
-  <link rel="web-socket" href="wss://live.github.com/_sockets/VjI6NDg1ODk4Nzg0OjY1ZTcwNWY4YjBkMmI4NDE1OWY4YmYyNTFmMzk1NTQzNWM4ZTYxZGU2MmE0YWM0YTE2MjJhMzk0MTA1YjRhM2M=--3cd6fff6d3a542ab96a55b85eebd407380f90bc9">
+  <link rel="web-socket" href="wss://live.github.com/_sockets/VjI6NDg1ODk4Nzg0OjhiODQ3ZTFkZmM2NzU2MTVkNjY5MzI1N2RlZWE5MTU3OWZiNjZiYzI0MjEwNTk1OWM5YjI1MGEyYTcwMjA5ZTA=--d07f4b7850cba20e35bc9fa6b398a4ef690a8c7d">
   <link rel="sudo-modal" href="/sessions/sudo_modal">
 
-  <meta name="request-id" content="C6C5:34C6:E79399:13664EA:5E97191D" data-pjax-transient="true" /><meta name="html-safe-nonce" content="c7508a4ea4b8a1c091c515e339d2bd5185847447" data-pjax-transient="true" /><meta name="visitor-payload" content="eyJyZWZlcnJlciI6Imh0dHBzOi8vZ2l0aHViLmNvbS93ZXN0ZXJsZXl5L2JpYmxlX3N0dWR5L3RyZWUvbWFzdGVyIiwicmVxdWVzdF9pZCI6IkM2QzU6MzRDNjpFNzkzOTk6MTM2NjRFQTo1RTk3MTkxRCIsInZpc2l0b3JfaWQiOiIxNjA5MTQzOTQ4OTQ2NzIyODA0IiwicmVnaW9uX2VkZ2UiOiJhcC1zb3V0aGVhc3QtMSIsInJlZ2lvbl9yZW5kZXIiOiJpYWQifQ==" data-pjax-transient="true" /><meta name="visitor-hmac" content="388800ee3eec026e39421801d9c87187f029132d5d55551bf561201d492190ed" data-pjax-transient="true" />
+  <meta name="request-id" content="C6FD:724F:B2FD56:EFBDD5:5E971A3B" data-pjax-transient="true" /><meta name="html-safe-nonce" content="c7508a4ea4b8a1c091c515e339d2bd5185847447" data-pjax-transient="true" /><meta name="visitor-payload" content="eyJyZWZlcnJlciI6Imh0dHBzOi8vZ2l0aHViLmNvbS93ZXN0ZXJsZXl5L2JpYmxlX3N0dWR5IiwicmVxdWVzdF9pZCI6IkM2RkQ6NzI0RjpCMkZENTY6RUZCREQ1OjVFOTcxQTNCIiwidmlzaXRvcl9pZCI6IjE2MDkxNDM5NDg5NDY3MjI4MDQiLCJyZWdpb25fZWRnZSI6ImFwLXNvdXRoZWFzdC0xIiwicmVnaW9uX3JlbmRlciI6ImlhZCJ9" data-pjax-transient="true" /><meta name="visitor-hmac" content="5e9d26217684e12bb175f5bf0683872c9296ea5649d7edbb2b41375253f685b7" data-pjax-transient="true" />
 
 
 
@@ -76,7 +76,7 @@
 
       <meta name="expected-hostname" content="github.com">
 
-      <meta name="js-proxy-site-detection-payload" content="NmYyMDkxNjk3MDA0Mjk1Yjc2NDZkNWEzYWE0Y2JmMGVhNGQ3YzFlMmEyY2FhZTUyMjRkZTUxZDE5YmZjYjhlZXx7InJlbW90ZV9hZGRyZXNzIjoiNTguMTgyLjE0My4xMDEiLCJyZXF1ZXN0X2lkIjoiQzZDNTozNEM2OkU3OTM5OToxMzY2NEVBOjVFOTcxOTFEIiwidGltZXN0YW1wIjoxNTg2OTYwNjcwLCJob3N0IjoiZ2l0aHViLmNvbSJ9">
+      <meta name="js-proxy-site-detection-payload" content="NTM4YTc3NWE2NmYxYjU0NDUyMTAxOTE5Njc3ZTY2NmE1YTBhYTQ3OWMyZDM3NjAzYmIxYjRhZGI4N2Q2ZjgxZXx7InJlbW90ZV9hZGRyZXNzIjoiNTguMTgyLjE0My4xMDEiLCJyZXF1ZXN0X2lkIjoiQzZGRDo3MjRGOkIyRkQ1NjpFRkJERDU6NUU5NzFBM0IiLCJ0aW1lc3RhbXAiOjE1ODY5NjA5NTUsImhvc3QiOiJnaXRodWIuY29tIn0=">
 
     <meta name="enabled-features" content="MARKETPLACE_SOCIAL_PROOF_CUSTOMERS,MARKETPLACE_TRENDING_SOCIAL_PROOF,MARKETPLACE_RECOMMENDATIONS,MARKETPLACE_PENDING_INSTALLATIONS,RELATED_ISSUES,GHE_CLOUD_TRIAL,PAGE_STALE_CHECK">
 
@@ -165,7 +165,7 @@
           spellcheck="false"
           autocomplete="off"
           >
-          <input type="hidden" value="O8Rsq8YaBymFDMiHRiuSm5Nd7sGr7K4vumudmmGmEyYL/S31Hhap0aubPO89SwGygwWKuEptezNznk/0p1ozfw==" data-csrf="true" class="js-data-jump-to-suggestions-path-csrf" />
+          <input type="hidden" value="1QnyZNKquodMGcN+6I02CHb/l2mH17e2EP1GPS/OMQvlMLM6CqYUf2KONxaT7aUhZqfzEGZWYqrZCJRT6TIRUg==" data-csrf="true" class="js-data-jump-to-suggestions-path-csrf" />
           <input type="hidden" class="js-site-search-type-field" name="type" >
             <img src="https://github.githubassets.com/images/search-key-slash.svg" alt="" class="mr-2 header-search-key-slash">
 
@@ -316,7 +316,7 @@
       <img class="avatar" height="20" width="20" alt="@westerleyy" src="https://avatars0.githubusercontent.com/u/47231787?s=60&amp;v=4" />
       westerleyy
 </a>
-    <!-- '"` --><!-- </textarea></xmp> --></option></form><form action="/logout" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="p4iyLArEyXrPWA5bvuCZWMPkaQZnlO3V8Lo0J8f5B3MSXYCmG29s/wzhJaISXfdUGEuZZ8C7/UsmwG4P1dgD9w==" />
+    <!-- '"` --><!-- </textarea></xmp> --></option></form><form action="/logout" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="my7KSzbJWKHFoDCLBZK18GPT2pFpl8Hqpo8jybx1Ik0u+/jBJ2L9JAYZG3KpL9v8uHwq8M640XRw9XnhrlQmyQ==" />
       <button type="submit" class="Header-link mr-0 mr-lg-3 py-2 py-lg-0 border-top border-lg-top-0 border-white-fade-15 d-lg-none btn-link d-block width-full text-left" data-ga-click="Header, sign out, icon:logout" style="padding-left: 2px;">
         <svg class="octicon octicon-sign-out v-align-middle" viewBox="0 0 16 17" version="1.1" width="16" height="17" aria-hidden="true"><path fill-rule="evenodd" d="M12 9V7H8V5h4V3l4 3-4 3zm-2 3H6V3L2 1h8v3h1V1c0-.55-.45-1-1-1H1C.45 0 0 .45 0 1v11.38c0 .39.22.73.55.91L6 16.01V13h4c.55 0 1-.45 1-1V8h-1v4z"></path></svg>
         Sign out
@@ -437,7 +437,7 @@
       </div>
     </summary>
     <details-dialog class="details-dialog rounded-1 anim-fade-in fast Box Box--overlay" role="dialog" tabindex="-1">
-      <!-- '"` --><!-- </textarea></xmp> --></option></form><form class="position-relative flex-auto js-user-status-form" action="/users/status?compact=1&amp;link_mentions=0&amp;truncate=1" accept-charset="UTF-8" method="post"><input type="hidden" name="_method" value="put" /><input type="hidden" name="authenticity_token" value="eI1RFkrB/0WH3Req0rdxaXMOtbQe7Q8KHOI/WeVyfL2A3vjn635J/b37+u3PlwjsZAxJpRuFre88F1I7Lz0UvQ==" />
+      <!-- '"` --><!-- </textarea></xmp> --></option></form><form class="position-relative flex-auto js-user-status-form" action="/users/status?compact=1&amp;link_mentions=0&amp;truncate=1" accept-charset="UTF-8" method="post"><input type="hidden" name="_method" value="put" /><input type="hidden" name="authenticity_token" value="nULWfU969+evLw9otEPbYlNDkbZFLR7rlW1gghqD2wllEX+M7sVBX5UJ4i+pY6LnREFtp0BFvA61mA3g0MyzCQ==" />
         <div class="Box-header bg-gray border-bottom p-3">
           <button class="Box-btn-octicon js-toggle-user-status-edit btn-octicon float-right" type="reset" aria-label="Close dialog" data-close-dialog>
             <svg class="octicon octicon-x" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7.48 8l3.75 3.75-1.48 1.48L6 9.48l-3.75 3.75-1.48-1.48L4.52 8 .77 4.25l1.48-1.48L6 6.52l3.75-3.75 1.48 1.48L7.48 8z"></path></svg>
@@ -555,17 +555,17 @@
       </li>
       <li class="dropdown-divider" role="none"></li>
         <li>
-          <button type="button" class="btn-link dropdown-item ws-normal js-user-status-expire-button" title="in 30 minutes" value="2020-04-15T22:54:30+08:00">
+          <button type="button" class="btn-link dropdown-item ws-normal js-user-status-expire-button" title="in 30 minutes" value="2020-04-15T22:59:15+08:00">
             in 30 minutes
           </button>
         </li>
         <li>
-          <button type="button" class="btn-link dropdown-item ws-normal js-user-status-expire-button" title="in 1 hour" value="2020-04-15T23:24:30+08:00">
+          <button type="button" class="btn-link dropdown-item ws-normal js-user-status-expire-button" title="in 1 hour" value="2020-04-15T23:29:15+08:00">
             in 1 hour
           </button>
         </li>
         <li>
-          <button type="button" class="btn-link dropdown-item ws-normal js-user-status-expire-button" title="in 4 hours" value="2020-04-16T02:24:30+08:00">
+          <button type="button" class="btn-link dropdown-item ws-normal js-user-status-expire-button" title="in 4 hours" value="2020-04-16T02:29:15+08:00">
             in 4 hours
           </button>
         </li>
@@ -634,12 +634,12 @@
 
     <a role="menuitem" class="dropdown-item" href="https://help.github.com" data-ga-click="Header, go to help, text:help">Help</a>
     <a role="menuitem" class="dropdown-item" href="/settings/profile" data-ga-click="Header, go to settings, icon:settings">Settings</a>
-    <!-- '"` --><!-- </textarea></xmp> --></option></form><form class="logout-form" action="/logout" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="xfc73k3Qvc6zYDdbIiK/X6hsRJdMR/NWiWqHfcVAQlpwIglUXHsYS3DZHKKOn9FTc8O09uto48hfEN1V12FG3g==" />
+    <!-- '"` --><!-- </textarea></xmp> --></option></form><form class="logout-form" action="/logout" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="aFzWYVjbYGvlB71LkVBroRFPq8VgAt/qJc9ZUhxpspfdieTrSXDF7ia+lrI97QWtyuBbpMctz3TztQN6Dki2Ew==" />
       
       <button type="submit" class="dropdown-item dropdown-signout" data-ga-click="Header, sign out, icon:logout" role="menuitem">
         Sign out
       </button>
-      <input type="text" name="required_field_5325" hidden="hidden" class="form-control" /><input type="hidden" name="timestamp" value="1586960670424" class="form-control" /><input type="hidden" name="timestamp_secret" value="4ed368462c4a3102f91594609c1754f06540a2fb87a56a3cf19c06846cfe2064" class="form-control" />
+      <input type="text" name="required_field_8d16" hidden="hidden" class="form-control" /><input type="hidden" name="timestamp" value="1586960955971" class="form-control" /><input type="hidden" name="timestamp_secret" value="de058978f40c813b180af0e8136e243fcb5aafc4ef482ebef218335dd541dea9" class="form-control" />
 </form>  </details-menu>
 </details>
 
@@ -729,7 +729,7 @@
 
   <li>
     
-    <!-- '"` --><!-- </textarea></xmp> --></option></form><form data-remote="true" class="clearfix js-social-form js-social-container" action="/notifications/subscribe" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="DnzLtgeo2eg8h1+62GzEm8cWvjIwKx6Ab//bjU6sMHjG5hIgPLYQ7BzxB7TibhpqEvfq2TEUQ1maywoe/Swu3w==" />      <input type="hidden" name="repository_id" value="255827630">
+    <!-- '"` --><!-- </textarea></xmp> --></option></form><form data-remote="true" class="clearfix js-social-form js-social-container" action="/notifications/subscribe" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="RRdylKV86KwSCGfcDOe20TklDGDVcEkhx7CbNLbQwVWNjasCnmIhqDJ+P9I25Wgg7MRYi9RPFPgyhEqnBVDf8g==" />      <input type="hidden" name="repository_id" value="255827630">
 
       <details class="details-reset details-overlay select-menu float-left">
         <summary class="select-menu-button float-left btn btn-sm btn-with-count" data-hydro-click="{&quot;event_type&quot;:&quot;repository.click&quot;,&quot;payload&quot;:{&quot;target&quot;:&quot;WATCH_BUTTON&quot;,&quot;repository_id&quot;:255827630,&quot;originating_url&quot;:&quot;https://github.com/westerleyy/bible_study/blob/master/README.md&quot;,&quot;user_id&quot;:47231787}}" data-hydro-click-hmac="bfd7408307f1083edc875bbf83cd9e631bf01423f54a95e9945a370f77d741fa" data-ga-click="Repository, click Watch settings, action:blob#show">          <span data-menu-button>
@@ -803,7 +803,7 @@
 
   <li>
       <div class="js-toggler-container js-social-container starring-container ">
-    <form class="starred js-social-form" action="/westerleyy/bible_study/unstar" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="gxDhVngkKdlTZ1GGgN8mEiKbACZbs/IVjzByG0nDviysyY0pYEnnvfcM7neek/c8tHxk+Duoq87tM6KP5BzdWw==" />
+    <form class="starred js-social-form" action="/westerleyy/bible_study/unstar" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="xX5WtwZUJyndYwjDf1l6CI1DEAiD1S+PJeEniPjTKkrqpzrIHjnpTXkItzJhFasmG6R01uPOdlRH4vccVQxJPQ==" />
       <input type="hidden" name="context" value="repository"></input>
       <button type="submit" class="btn btn-sm btn-with-count js-toggler-target" aria-label="Unstar this repository" title="Unstar westerleyy/bible_study" data-hydro-click="{&quot;event_type&quot;:&quot;repository.click&quot;,&quot;payload&quot;:{&quot;target&quot;:&quot;UNSTAR_BUTTON&quot;,&quot;repository_id&quot;:255827630,&quot;originating_url&quot;:&quot;https://github.com/westerleyy/bible_study/blob/master/README.md&quot;,&quot;user_id&quot;:47231787}}" data-hydro-click-hmac="072445fa3959f88852d47ae40f3a6a686c33a7b2ffa8e185f06c76837f7a25d3" data-ga-click="Repository, click unstar button, action:blob#show; text:Unstar">        <svg height="16" class="octicon octicon-star v-align-text-bottom" vertical_align="text_bottom" viewBox="0 0 14 16" version="1.1" width="14" aria-hidden="true"><path fill-rule="evenodd" d="M14 6l-4.9-.64L7 1 4.9 5.36 0 6l3.6 3.26L2.67 14 7 11.67 11.33 14l-.93-4.74L14 6z"></path></svg>
 
@@ -813,7 +813,7 @@
            0
         </a>
 </form>
-    <form class="unstarred js-social-form" action="/westerleyy/bible_study/star" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="zPLbuCDAEMd8D0U1N+lzk2UqK9WisBjgBER9MeuSe3QHuULQdg25tPeM1VF95ZorcjR60T/PTjNqQdQmuuebmA==" />
+    <form class="unstarred js-social-form" action="/westerleyy/bible_study/star" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="sXKts2OeGR3Q/+ZdDCaJAOrwbOTUHbJMd5Ub31MjJIN6OTTbNVOwblt8djlGKmC4/e494Eli5J8ZkLLIAlbEbw==" />
       <input type="hidden" name="context" value="repository"></input>
       <button type="submit" class="btn btn-sm btn-with-count js-toggler-target" aria-label="Unstar this repository" title="Star westerleyy/bible_study" data-hydro-click="{&quot;event_type&quot;:&quot;repository.click&quot;,&quot;payload&quot;:{&quot;target&quot;:&quot;STAR_BUTTON&quot;,&quot;repository_id&quot;:255827630,&quot;originating_url&quot;:&quot;https://github.com/westerleyy/bible_study/blob/master/README.md&quot;,&quot;user_id&quot;:47231787}}" data-hydro-click-hmac="f324c2de062887ce82d7b89742a1066291dd23412ff26e707825f76c938cf22b" data-ga-click="Repository, click star button, action:blob#show; text:Star">        <svg height="16" class="octicon octicon-star v-align-text-bottom" vertical_align="text_bottom" viewBox="0 0 14 16" version="1.1" width="14" aria-hidden="true"><path fill-rule="evenodd" d="M14 6l-4.9-.64L7 1 4.9 5.36 0 6l3.6 3.26L2.67 14 7 11.67 11.33 14l-.93-4.74L14 6z"></path></svg>
 
@@ -1078,13 +1078,13 @@
               <svg class="octicon octicon-device-desktop" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M15 2H1c-.55 0-1 .45-1 1v9c0 .55.45 1 1 1h5.34c-.25.61-.86 1.39-2.34 2h8c-1.48-.61-2.09-1.39-2.34-2H15c.55 0 1-.45 1-1V3c0-.55-.45-1-1-1zm0 9H1V3h14v8z"></path></svg>
           </a>
 
-          <!-- '"` --><!-- </textarea></xmp> --></option></form><form class="inline-form js-update-url-with-hash" action="/westerleyy/bible_study/edit/master/README.md" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="O3gf9x/lXfsRnTFU8uaLbYPqYLinb0+gW3yfguamnW8W9R7+xyJNOCGijeFJfT3qBWo3y+jXyHzf0I2556CNmw==" />
+          <!-- '"` --><!-- </textarea></xmp> --></option></form><form class="inline-form js-update-url-with-hash" action="/westerleyy/bible_study/edit/master/README.md" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="vz3iZIuhLA18od67GNZ5zcMnUSDwhJjeP+oXuJ+ezfqSsONtU2Y8zkyeYg6jTc9KRacGU788HwK7RgWDnpjdDg==" />
             <button class="btn-octicon tooltipped tooltipped-nw" type="submit"
               aria-label="Edit this file" data-hotkey="e" data-disable-with>
               <svg class="octicon octicon-pencil" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M0 12v3h3l8-8-3-3-8 8zm3 2H1v-2h1v1h1v1zm10.3-9.3L12 6 9 3l1.3-1.3a.996.996 0 011.41 0l1.59 1.59c.39.39.39 1.02 0 1.41z"></path></svg>
             </button>
 </form>
-          <!-- '"` --><!-- </textarea></xmp> --></option></form><form class="inline-form" action="/westerleyy/bible_study/delete/master/README.md" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="SUGgN/3aVHGOMhERsTUoR2Db0k0Jx1/eUuHyb8q/pJenu189iuUKAbf0jOtymbmsE5wkc2RT9ZZeX0IdazYGHA==" />
+          <!-- '"` --><!-- </textarea></xmp> --></option></form><form class="inline-form" action="/westerleyy/bible_study/delete/master/README.md" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="svPO//dyETZVskv5yAZQLFHhZS27p949d+7knJ+/c5dcCTH1gE1PRmx01gMLqsHHIqaTE9YzdHV7UFTuPjbRHA==" />
             <button class="btn-octicon btn-octicon-danger tooltipped tooltipped-nw" type="submit"
               aria-label="Delete this file" data-disable-with>
               <svg class="octicon octicon-trashcan" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M11 2H9c0-.55-.45-1-1-1H5c-.55 0-1 .45-1 1H2c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1v9c0 .55.45 1 1 1h7c.55 0 1-.45 1-1V5c.55 0 1-.45 1-1V3c0-.55-.45-1-1-1zm-1 12H3V5h1v8h1V5h1v8h1V5h1v8h1V5h1v9zm1-10H2V3h9v1z"></path></svg>
