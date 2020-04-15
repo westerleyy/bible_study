@@ -29,19 +29,21 @@ gospels <- gospels %>%
   mutate(Book = str_split(Verse, " ")[[1]][1])
 ```
 
-### Introduction  
+#### Introduction  
   
 The New York Times bestseller list changes every week. But on the time scale of centuries and millenia, the longstanding global bestseller has not. It is most probably the Bible. The Bible as we know it today is probably quite diffeent in style and phrasing from that a mere century ago. It undergoes revisions for clarity and ease of comprehension as linguistic norms change. The subject matter and meaning of its verses have not, however. But have they?    
   
 This paper will therefore seek to test the hypothesis despite the linguistic and ease of readability differences, various versions of the Bible maintain a significant degree of similarity in terms of its topics, and sentiments. Furthermore, given that the Bible is effectively an agglomeration of religious treatises by various authors, stylistic differences should be retained even with the revisions. 
 
-### Methodology and Data Sources  
+#### Similarity  
+  
 The Bible itself can be seen as a "multi-parallel corpora" (Xia and Yarowsky, 2017, p.448) with multiple versions of what is essentially a highly similar corpus. Stylometric analyis (McDonald, 2014).  
   
 First, this paper will seek to validate a commonly held opinion among Christians, and Bible scholars that among the various books within the Bible, the Gospels of Matthew, Mark, Luke, and John are among the most similar. In fact, the Gospels are also known as the Synoptic Gospels (Linmans, 1998; Murai, 2006) with corresponding sections among the four. Murai (2006) argues that from a network analysis perspective, they can be characterized as a series of multiple one-to-many relationships.  
   
-Using the King James' Version of the Bible, each verse was collapsed into a row with each row comprising of verses from the same book. A document-feature matrix was then created. Stopwords, punctuation, and numbers were removed, every word was lower-cased and then stemmed. To reduce the number of dimensions, Principal Components Analysis (PCA) was performed. The scree plot suggests that each component captured relatively little of the variation between books. Furthermore, the biplot of the first two principal components does not support the hypothesis that the four Gospel books are relatively similar based on their variation. 
-```{r PCA, echo = FALSE}
+Using the King James' Version of the Bible, each verse was collapsed into a row with each row comprising of verses from the same book. A document-feature matrix (DFM) was then created. Stopwords, punctuation, and numbers were removed, every word was lower-cased and then stemmed. To reduce the number of dimensions, Principal Components Analysis (PCA) was performed. The scree plot suggests that each component captured relatively little of the variation between books. Furthermore, the biplot of the first two principal components does not support the hypothesis that the four Gospel books are relatively similar based on variances within the entire Bible's DFM. Instead, a more distinct clustering of the Pauline and General Epistles can be observed.  
+
+```{r PCA, echo = FALSE, fig.height=8, fig.width=10}
 # extracting the name of each book
 # extracting the KJV
 # paste and collapse each verse grouped by book
@@ -71,19 +73,20 @@ kjv_books_pca <- prcomp(kjv_books_mat, center = T, scale = T)
 
 kjv_books_pca_df <- kjv_books_pca$x %>%
   as.data.frame()
-kjv_books_pca_df$group <- unique(books)
+kjv_books_pca_df$books <- unique(books)
+kjv_books_pca_df$Groups <- c("The Law","The Law", "The Law", "The Law","The Law", "Historical","Historical", "Historical","Historical","Historical", "Historical", "Historical","Historical", "Historical","Historical", "Historical","Historical", "Poetry", "Poetry", "Poetry", "Poetry", "Poetry", "Major Prophets", "Major Prophets", "Major Prophets", "Major Prophets", "Major Prophets", "Minor Prophets", "Minor Prophets", "Minor Prophets", "Minor Prophets", "Minor Prophets", "Minor Prophets", "Minor Prophets", "Minor Prophets", "Minor Prophets", "Minor Prophets", "Minor Prophets", "Minor Prophets", "Gospels", "Gospels", "Gospels", "Gospels", "Acts", "Pauline Epistles", "Pauline Epistles", "Pauline Epistles", "Pauline Epistles", "Pauline Epistles", "Pauline Epistles", "Pauline Epistles", "Pauline Epistles", "Pauline Epistles", "Pauline Epistles", "Pauline Epistles", "Pauline Epistles", "Pauline Epistles", "General Epistles", "General Epistles","General Epistles", "General Epistles", "General Epistles", "General Epistles","General Epistles", "General Epistles", "End Times")
 
 fviz_eig(kjv_books_pca, addlabels = T,
          main = "Screeplot of KJV Bible DFM's Principal Components")
 
-ggplot(kjv_books_pca_df, aes(PC1, PC2, label = group)) + 
-  geom_point() + 
-  geom_text(size = 3, nudge_y = 1) + 
-  coord_cartesian(xlim = c(-25, 25), ylim = c(-25, 25)) + 
+ggplot(kjv_books_pca_df, aes(PC1, PC2, label = books)) + 
+  geom_point(aes(color = Groups)) + 
+  #geom_text(size = 3, nudge_y = 1, nudge_x = 3) + 
+  coord_cartesian(xlim = c(-15, 15), ylim = c(-20, 20)) + 
   labs(title = "First Two Principal Components of KJV Bible DFM",
-       subtitle = "Zoomed to -25:25,-25:25 for greater clarity")
+       subtitle = "Zoomed to -20:20,-25:25 for greater clarity")
 ```
-
+Extending the bag of words approach, we can calculate the cosine similarity among the four Gospel books. As cosine similarity is based on the DFM of the entire KJV Bible, in so far as word choice and frequency contains latent information, it hints at the relative similarity of the four books in terms of topics, and sentiments. The data suggests that Matthew and Mark, and Mark and Luke are the most similar. On the other hand, John is signifcantly different from Matthew and Mark but highly similar to Luke.  
 ```{r cosine_similarity, echo=FALSE}
 cosine_similarity_mat <- sapply(40:43, function(x){
   sapply(40:43, function(y){
@@ -93,7 +96,90 @@ cosine_similarity_mat <- sapply(40:43, function(x){
 })
 row.names(cosine_similarity_mat) <- c("Matthew", "Mark", "Luke", "John")
 colnames(cosine_similarity_mat) <- c("Matthew", "Mark", "Luke", "John")
-datatable(cosine_similarity_mat)
+datatable(cosine_similarity_mat, caption = "King James Version")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+This analysis can be repeated with the American Standard Version of the Bible and the World English Bible to see if a similar relationship is observed. 
+```{r ASV Cosine Similarity, echo = FALSE}
+asv_gospels_collapsed <- all_bibles %>%
+  filter(Book %in% c("Matthew", "Mark", "Luke", "John")) %>%
+  select(Book, `American Standard Version`) %>%
+  group_by(Book) %>%
+  summarise(Verse = paste(`American Standard Version`, collapse = " "))
+asv_collapsed_vec <- asv_gospels_collapsed$Verse %>%
+  unlist()
+names(asv_collapsed_vec) <- c("Matthew", "Mark", "Luke", "John")
+
+# create DFM
+# convert to matrix
+asv_books_dfm <- dfm(asv_collapsed_vec, tolower = T, remove = stopwords("english"), remove_punct = T, remove_numbers = T, stem = T)
+
+# cosine similarity
+cosine_similarity_mat <- sapply(1:4, function(x){
+  sapply(1:4, function(y){
+    cosine_similarity <- textstat_simil(asv_books_dfm[x], asv_books_dfm[y], method = "cosine")
+    round(cosine_similarity@x,3)*100
+  })
+})
+row.names(cosine_similarity_mat) <- c("Matthew", "Mark", "Luke", "John")
+colnames(cosine_similarity_mat) <- c("Matthew", "Mark", "Luke", "John")
+datatable(cosine_similarity_mat, caption = "American Standard Version")
+```
+
+```{r WEB Cosine Similarity, echo = FALSE}
+web_gospels_collapsed <- all_bibles %>%
+  filter(Book %in% c("Matthew", "Mark", "Luke", "John")) %>%
+  select(Book, `World English Bible`) %>%
+  group_by(Book) %>%
+  summarise(Verse = paste(`World English Bible`, collapse = " "))
+web_collapsed_vec <- web_gospels_collapsed$Verse %>%
+  unlist()
+names(web_collapsed_vec) <- c("Matthew", "Mark", "Luke", "John")
+
+# create DFM
+# convert to matrix
+web_books_dfm <- dfm(web_collapsed_vec, tolower = T, remove = stopwords("english"), remove_punct = T, remove_numbers = T, stem = T)
+
+# cosine similarity
+cosine_similarity_mat <- sapply(1:4, function(x){
+  sapply(1:4, function(y){
+    cosine_similarity <- textstat_simil(web_books_dfm[x], web_books_dfm[y], method = "cosine")
+    round(cosine_similarity@x,3)*100
+  })
+})
+row.names(cosine_similarity_mat) <- c("Matthew", "Mark", "Luke", "John")
+colnames(cosine_similarity_mat) <- c("Matthew", "Mark", "Luke", "John")
+datatable(cosine_similarity_mat, caption = "World English Bible")
+```
+  
+This analysis can be repeated with the American Standard Version of the Bible and the World English Bible to see a similar relationship is observed. Based on the tables above, all three versions of the Bible, are relatively uniform in ranking the cosine similarity among the four Gospel books. However, the more antiquated KJV shows a greater divergence among the books. Furthermore, the KJV suggests that John is least similar to Matthew and Mark. With the two newer versions however, that analysis is flipped; John is most similar to both Matthew and Mark.  
+  
+#### Separability  
+  
+The second part of this paper builds on the understanding that although the three versions of the Bible and the four Gospels might very well share similar content, they are ultimately distinct. This can be attributed to stylistic differences among the different authors, and translations and word choice contemporaneous to the day and age of each version.  
+  
+To test this hypothesis, a random forest classifier was fitted on a sample of verses from each of the four books. 
+```{r random forest prep}
+gospels_class <- all_bibles %>%
+  filter(Book %in% c("Matthew", "Mark", "Luke", "John")) %>%
+  select(Book, `American Standard Version`, `King James Bible`, `World English Bible`) %>%
+  pivot_longer(., cols = c(`American Standard Version`, `King James Bible`, `World English Bible`), names_to = "Version") %>%
+  group_by(Book, Version) %>%
+  summarise(Count = n()) %>%
+  pivot_wider(.,names_from = "Version", values_from = "Count")
+datatable(gospels_class, caption = "Number of verses in each book and version")
+```
+  
+Given that the four Gospels cover roughly the same issues, their lengths should be somewhat similar. The table above confirms this. Thus, the issue of class imbalance, the over-representation of a particular book, is not a particularly salient issue in this case.  
+
+```{r random forest}
+## creating variable class
+gospels <- all_bibles %>%
+  filter(Book %in% c("Matthew", "Mark", "Luke", "John")) %>%
+  select(Book, `American Standard Version`, `King James Bible`, `World English Bible`) %>%
+  pivot_longer(., cols = c(`American Standard Version`, `King James Bible`, `World English Bible`), names_to = "Version") %>%
+  mutate(Class = paste(substr(Version, 1,1), substr(Book, 1, 2), sep = "_"))
+```
+
+
+However, the presence of periscopes within each of the four Gospels might complicate the ability of the classifier to accurately identify the version and the book, given a verse. 
