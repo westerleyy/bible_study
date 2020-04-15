@@ -1,0 +1,39 @@
+---
+title: "The Word"
+author: "Wesley Chioh"
+date: "April 9, 2020"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# loading libraries
+library(quanteda)
+library(tidyverse)
+library(topicmodels)
+library(ggplot2)
+library(lsa)
+library(stm)
+```
+
+### Introduction  
+  
+The New York Times bestseller list changes every week. But on the time scale of centuries and millenia, the longstanding global bestseller has not. It is most probably the Bible. The Bible as we know it today is probably quite diffeent in style and phrasing from that a mere century ago. It undergoes revisions for clarity and ease of comprehension as linguistic norms change. The subject matter and meaning of its verses have not, however. But have they?    
+  
+This paper will therefore seek to test the hypothesis despite the linguistic and ease of readability differences, various versions of the Bible maintain a significant degree of similarity in terms of its topics, and sentiments. Furthermore, given that the Bible is effectively an agglomeration of religious treatises by various authors, stylistic differences should be retained even with the revisions. 
+
+### Methodology and Data Sources  
+The Bible itself can be seen as a "multi-parallel corpora" (Xia and Yarowsky, 2017, p.448).
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
