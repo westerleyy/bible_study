@@ -18,6 +18,8 @@ library(factoextra)
 library(text2vec)
 library(plotly)
 library(DT)
+library(caret)
+library(doParallel)
 
 #reading in bible
 all_bibles <- read_csv("bibles.csv")
@@ -158,7 +160,10 @@ This analysis can be repeated with the American Standard Version of the Bible an
   
 The second part of this paper builds on the understanding that although the three versions of the Bible and the four Gospels might very well share similar content, they are ultimately distinct. This can be attributed to stylistic differences among the different authors, and translations and word choice contemporaneous to the day and age of each version.  
   
-To test this hypothesis, a random forest classifier was fitted on a sample of verses from each of the four books. 
+To test this hypothesis, random forest classifiers were fitted on a sample of verses from each of the four books across all three versions. The training and test data split takes into account the slight class imbalance shown below by ensuring that every class is sampled according to its distribution in the population of verses. Three random forest classifiers were fitted:  
+1. Classify verses based on the version and the book  
+2. Classify verses based on the version  
+3. Classify verses based on the book
 ```{r random forest prep}
 gospels_class <- all_bibles %>%
   filter(Book %in% c("Matthew", "Mark", "Luke", "John")) %>%
@@ -167,19 +172,171 @@ gospels_class <- all_bibles %>%
   group_by(Book, Version) %>%
   summarise(Count = n()) %>%
   pivot_wider(.,names_from = "Version", values_from = "Count")
-datatable(gospels_class, caption = "Number of verses in each book and version")
+datatable(gospels_class, caption = "Class Imbalance: Number of verses in each book and version")
 ```
   
-Given that the four Gospels cover roughly the same issues, their lengths should be somewhat similar. The table above confirms this. Thus, the issue of class imbalance, the over-representation of a particular book, is not a particularly salient issue in this case.  
 
-```{r random forest}
+```{r random forest1, echo = FALSE}
+set.seed(1728)
+
 ## creating variable class
 gospels <- all_bibles %>%
   filter(Book %in% c("Matthew", "Mark", "Luke", "John")) %>%
   select(Book, `American Standard Version`, `King James Bible`, `World English Bible`) %>%
   pivot_longer(., cols = c(`American Standard Version`, `King James Bible`, `World English Bible`), names_to = "Version") %>%
-  mutate(Class = paste(substr(Version, 1,1), substr(Book, 1, 2), sep = "_"))
+  mutate(Class = paste(substr(Version, 1,1), substr(Book, 1, 3), sep = "_"))
+
+# creating DFM
+# partition data with factor to preserve class distribution
+gospels_dfm <- dfm(gospels$value, stem = T, remove_punct = T, tolower = T, remove = stopwords("english")) %>%
+  dfm_trim(min_termfreq = 5, min_docfreq = 3) %>%
+  convert("matrix")
+gospels$Class <- as.factor(gospels$Class)
+ids_train <- createDataPartition(gospels$Class, p = 0.7, list = F, times = 1)
+train_x1 <- gospels_dfm[ids_train,] %>%
+  as.data.frame()
+train_y1 <- gospels$Class[ids_train] %>%
+  as.factor()
+test_x1 <- gospels_dfm[-ids_train,] %>%
+  as.data.frame()
+test_y1 <- gospels$Class[-ids_train] %>%
+  as.factor()
+
+## tuning random forest
+mtry <- sqrt(ncol(train_x)) 
+ntree <- 51
+trainControl <- trainControl(method = "cv", number = 5)
+metric <- "Accuracy"
+tunegrid <- expand.grid(.mtry = mtry)
+#cl <- makePSOCKcluster(5)
+#registerDoParallel(cl)
+# 
+# # running rf
+# gospels_rf <- train(x = train_x, y = train_y,
+#                   method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
+# stopCluster(cl)
+
+# save RDS and then load to speed things up
+# saveRDS(gospels_rf, "gospels_rf.RDS")
+gospels_rf <- readRDS("gospels_rf.RDS")
+
+# print model
+# print(gospels_rf)
+
+# predict and confusion matrix
+gospels_rf_predict <- predict(gospels_rf, newdata = test_x1)
+gospels_rf_cm <- confusionMatrix(gospels_rf_predict, reference = test_y1)
+gospels_rf_cm$table
+```
+With 12 classes to predict, the out-of-sample accuracy is `r round(gospels_rf_cm$overall[1],3)`. It is a significant improvement over its base rate of `r round(gospels_rf_cm$overall[5],3)`, which is obtained by simply predicting the most commonly occurring class in the dataset. The table above suggests that Luke is often misclassified as Matthew; verses from John are less likely to be misclassified; and the WEB is less likely to be misclassified as either the ASV or the KJV. Expanding the analysis, the question becomes whether the model will be able to more accurately classify with fewer classes.  
+  
+```{r random forest 2}
+set.seed(1728)
+
+## creating variable class
+gospels_reduced_class <- all_bibles %>%
+  filter(Book %in% c("Matthew", "Mark", "Luke", "John")) %>%
+  select(Book, `American Standard Version`, `King James Bible`, `World English Bible`) %>%
+  pivot_longer(., cols = c(`American Standard Version`, `King James Bible`, `World English Bible`), names_to = "Version") 
+
+# creating DFM
+# partition data with factor to preserve class distribution
+gospels_dfm <- dfm(gospels_reduced_class$value, stem = T, remove_punct = T, tolower = T, remove = stopwords("english")) %>%
+  dfm_trim(min_termfreq = 5, min_docfreq = 3) %>%
+  convert("matrix")
+gospels_reduced_class$Book <- as.factor(gospels_reduced_class$Book)
+gospels_reduced_class$Version <- as.factor(gospels_reduced_class$Version)
+ids_train2 <- createDataPartition(gospels_reduced_class$Version, p = 0.7, list = F, times = 1)
+train_x2 <- gospels_dfm[ids_train2,] %>%
+  as.data.frame()
+train_y2 <- gospels_reduced_class$Version[ids_train2] %>%
+  as.factor()
+test_x2 <- gospels_dfm[-ids_train2,] %>%
+  as.data.frame()
+test_y2 <- gospels_reduced_class$Version[-ids_train2] %>%
+  as.factor()
+
+## tuning random forest
+ mtry <- sqrt(ncol(train_x2)) 
+ ntree <- 51
+ trainControl <- trainControl(method = "cv", number = 5)
+ metric <- "Accuracy"
+ tunegrid <- expand.grid(.mtry = mtry)
+ cl <- makePSOCKcluster(5)
+ registerDoParallel(cl)
+
+# # running rf
+# gospels_rf_version <- train(x = train_x2, y = train_y2,
+#                    method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
+# stopCluster(cl)
+# 
+# # save RDS and then load to speed things up
+# saveRDS(gospels_rf_version, "gospels_rf_version.RDS")
+gospels_rf_version <- readRDS("gospels_rf_version.RDS")
+
+# print model
+# print(gospels_rf_version)
+
+# predict and confusion matrix
+gospels_rf_version_predict <- predict(gospels_rf_version, newdata = test_x2)
+confusionMatrix(gospels_rf_version_predict, reference = test_y2)
+```
+The second random forest classifier which sought to classify the version of the Bible, given a verse performed poorly as compared to a more expansive classifier that classified a verse by the version and book. The breakdown and misclassification is particularly acute between the ASV and KJV Bibles. This suggests that the distinction between versions is less clear than that among the different books, all of whom had different authors.  
+
+```{r random forest 3}
+##### Book
+ids_train3 <- createDataPartition(gospels_reduced_class$Book, p = 0.7, list = F, times = 1)
+train_x3 <- gospels_dfm[ids_train3,] %>%
+  as.data.frame()
+train_y3 <- gospels_reduced_class$Book[ids_train3] %>%
+  as.factor()
+test_x3 <- gospels_dfm[-ids_train3,] %>%
+  as.data.frame()
+test_y3 <- gospels_reduced_class$Book[-ids_train3] %>%
+  as.factor()
+
+## tuning random forest
+mtry <- sqrt(ncol(train_x3)) 
+ntree <- 51
+trainControl <- trainControl(method = "cv", number = 5)
+metric <- "Accuracy"
+tunegrid <- expand.grid(.mtry = mtry)
+cl <- makePSOCKcluster(5)
+registerDoParallel(cl)
+# 
+# # running rf
+gospels_rf_book <- train(x = train_x3, y = train_y3,
+                   method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
+stopCluster(cl)
+
+# save RDS and then load to speed things up
+saveRDS(gospels_rf_book, "gospels_rf_book.RDS")
+gospels_rf_book <- readRDS("gospels_rf_book.RDS")
+
+# print model
+# print(gospels_rf_book)
+
+# predict and confusion matrix
+gospels_rf_book_predict <- predict(gospels_rf_book, newdata = test_x3)
+gospels_rf_book_cm <- confusionMatrix(gospels_rf_book_predict, reference = test_y3)
+gospels_rf_book_cm$table
+```
+The out of sample accuracy for predicting the book given a verse is `r round(gospels_rf_book_cm$overall[1], 3)`. Of the three classifiers trained and tested thus far, this shows the highest degree of accuracy. This implies that the distinction among the Gospel books has been preserved, and topically they are more distinct from one another than their own revisions over the ages. 
+
+
+```{r}
+library(topicmodels)
+library(ldatuning)
+k_optimize_gospels <- FindTopicsNumber(
+  gospels_dfm,
+  topics = seq(from = 2, to = 30, by = 2),
+  metrics = c("Griffiths2004", "CaoJuan2009", "Arun2010", "Deveaud2014"),
+  method = "Gibbs",
+  control = list(seed = 1728),
+  mc.cores = detectCores(), # to usa all cores available
+  verbose = TRUE
+)
+
+FindTopicsNumber_plot(k_optimize_blm)
 ```
 
-
-However, the presence of periscopes within each of the four Gospels might complicate the ability of the classifier to accurately identify the version and the book, given a verse. 
