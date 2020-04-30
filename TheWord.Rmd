@@ -20,6 +20,7 @@ library(plotly)
 library(DT)
 library(caret)
 library(doParallel)
+library(cluster)
 
 #reading in bible
 all_bibles <- read_csv("bibles.csv")
@@ -313,9 +314,11 @@ gospels_rf_book_cm$byClass[,5:7]
 The out of sample accuracy for predicting the book given a verse is `r round(gospels_rf_book_cm$overall[1], 3)`. Of the three classifiers trained and tested thus far, this shows the highest degree of accuracy. However, given that there is a class imbalance, the F1 score as shown above might be more appropriate instead. The high degree of precision in book classification suggests that distinctions between books are relatively strong and retained over the various versions. However, the book of Mark has a uncharacteristically low recall score of `r gospels_rf_book_cm$byClass[3,6]`. This suggests that verses in Mark tend to be misattributed to other books. This lends some support to the theological argument of Marcan Priority in which the Gospels of Matthew and Luke are based on Mark (Goodacre, 2000; Murai, 2006).   
 
 #### Clusters  
+    
+Murai (2006) argued that the Gospels contain verses that are echoed in one another in syncoptic fashion. Thus, various chapters across the four Gospel books should exhibit high degrees of similarity after controlling for Bible version. This is especially so given the argument of Marcan Priority where Luke and Matthew are derived from the book of Mark.  
   
-
-```{r PCA, echo = FALSE, fig.height=8, fig.width=10, eval = FALSE}
+The WEB was used to test this expectation. The WEB is the most recently translated copy of the three. Removal of contemporary stopwords can thus be performed with relative confidence that textual meanings are not severely redacted. This leaves behind proper nouns and other less commonly used words that will aid in the clustering at the chapter level. Verses can be relatively short and easily taken out of context when stopwords are removed. Collapsing them into chapters can provide a better approximation of chapter meaning.    
+```{r PCA, echo = FALSE, fig.height=8, fig.width=10}
 web_collapsed_pca <- all_bibles %>%
   filter(Book %in% c("Mark", "John", "Luke", "Matthew")) %>%
   select(Book, Chapter, `World English Bible`) %>%
@@ -329,7 +332,7 @@ names(web_collapsed_pca_vec) <- web_collapsed_pca$Chapter
 # convert to matrix
 web_chapter_dfm <- dfm(web_collapsed_pca_vec, tolower = T, remove_punct = T, remove_numbers = T, stem = T, remove = stopwords("english"))
 web_chapter_mat <- convert(web_chapter_dfm, to = "matrix")
-
+web_chapter_mat_scale <- scale(web_chapter_mat)
 # PCA
 
 web_chapter_pca <- prcomp(web_chapter_mat, center = T, scale = T)
@@ -342,14 +345,36 @@ web_chapter_pca_df$Book <- web_collapsed_pca$Book
 fviz_eig(web_chapter_pca, addlabels = T,
          main = "Screeplot of WEB DFM's Principal Components")
 
-ggplot(web_chapter_pca_df, aes(PC1, PC2, label = Chapter)) + 
-  geom_point(aes(color = Book)) + 
-  #geom_text(size = 3, nudge_y = 0.2, nudge_x = 0.5) + 
-  coord_cartesian(xlim = c(-3, 3), ylim = c(-5, 2.5)) + 
-  labs(title = "First Two Principal Components of WEB DFM",
-       subtitle = "Zoomed to -3:3,-5:2.5 for greater clarity")
+
+# ggplot(web_chapter_pca_df, aes(PC1, PC2, label = Chapter)) + 
+#   geom_point(aes(color = Book)) + 
+#   #geom_text(size = 3, nudge_y = 0.2, nudge_x = 0.5) + 
+#   coord_cartesian(xlim = c(-3, 3), ylim = c(-5, 2.5)) + 
+#   labs(title = "First Two Principal Components of WEB DFM",
+#        subtitle = "Zoomed to -3:3,-5:2.5 for greater clarity")
+
+# # Distance
+chapter_distance <- get_dist(web_chapter_mat_scale)
+fviz_dist(chapter_distance, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07")) + 
+  labs(title = "Euclidean Distance of Each Chapter", fill = "Distance")
 ```
-
-
+  
+As a baseline of comparison, the Euclidean distance between each book can be calculated and plotted. For the most part, books and chapters are distinct from one another with the exception of certain chapters that echo each other content-wise such as Mark 11 and Matthew 21. Curiously, Luke 19 and 20 are dissimilar, possibly because the same content is now split between two chapters.  The screeplot above suggests that dimensionality has not been significantly reduced. The first two dimensions account for less than 7% of the variability. Thus, principal components analysis is not particularly useful in this case as the trade-off between dimensionality and variance is extremely steep.  
+  
+```{r kmeans}
+# KMeans
+set.seed(1728)
+fviz_nbclust(web_chapter_mat_scale, kmeans, method = "silhouette", k.max = 28)
+k5 <- kmeans(web_chapter_mat_scale, 5, nstart = 25)
+fviz_cluster(k5, data = web_chapter_mat_scale)
+```
+    
+KMeans clustering was then performed to see whether books can be identified from one another, in which case there ought to be four clusters. Alternatively, the books can also be clustered by content similarity, in which case there should be anywhere between 16 and 28 clusters given that shortest book has 16 chapters, and the longest has 28. This assumes that content order and chapter delimitation is highly similar. The silhouette score plot suggests that the ideal number of clusters is 5. Plotting the five clusters using the first two principal component, the following observations about the clusters can be made:  
+1. Cluster 1 contains chapters on the crucifixion of Jesus.  
+2. Cluster 2 contains chapters on the betrayal of Jesus by Judas and the Last Supper.  
+3. Cluster 3 and 4 are outliers.  
+4. Cluster 5 is most probably an amalgamation of dissimilar chapters, given that most chapters are more different than they are similar, as the Euclidean distance plot suggests.  
+  
+  
   
 
