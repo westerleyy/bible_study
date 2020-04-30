@@ -1,5 +1,6 @@
 ---
 title: "The Word"
+subtitle: "An textual analysis of the King James Version, American Standard Version, and World English Bible."
 author: "Wesley Chioh"
 date: "April 9, 2020"
 output: word_document
@@ -21,6 +22,7 @@ library(DT)
 library(caret)
 library(doParallel)
 library(cluster)
+library(kableExtra)
 
 #reading in bible
 all_bibles <- read_csv("bibles.csv")
@@ -150,7 +152,7 @@ To test this hypothesis, random forest classifiers were fitted on a sample of ve
 1. Classify verses based on the version and the book  
 2. Classify verses based on the version  
 3. Classify verses based on the book
-```{r random forest prep}
+```{r random forest prep, echo = FALSE}
 gospels_class <- all_bibles %>%
   filter(Book %in% c("Matthew", "Mark", "Luke", "John")) %>%
   select(Book, `American Standard Version`, `King James Bible`, `World English Bible`) %>%
@@ -190,16 +192,16 @@ test_y1 <- gospels$Class[-ids_train] %>%
 
 ## tuning random forest
 mtry <- sqrt(ncol(train_x1)) 
-ntree <- 61
-trainControl <- trainControl(method = "cv", number = 5)
+ntree <- 101
+trainControl <- trainControl(method = "cv", number = 10, search = "grid" )
 metric <- "Accuracy"
 tunegrid <- expand.grid(.mtry = mtry)
 cl <- makePSOCKcluster(5)
 registerDoParallel(cl)
-# 
-# # running rf
+ 
+# running rf
 gospels_rf <- train(x = train_x1, y = train_y1,
-                   method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
+                  method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
 stopCluster(cl)
 
 # save RDS and then load to speed things up
@@ -212,9 +214,11 @@ gospels_rf <- readRDS("gospels_rf.RDS")
 # predict and confusion matrix
 gospels_rf_predict <- predict(gospels_rf, newdata = test_x1)
 gospels_rf_cm <- confusionMatrix(gospels_rf_predict, reference = test_y1, mode = "prec_recall")
-gospels_rf_cm$table
+gospels_rf_cm$byClass[,c(11,5:7)] %>%
+  kable(caption = "Table 1: Model (Book and Version) Results") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
-With 12 classes to predict, the out-of-sample accuracy is `r round(gospels_rf_cm$overall[1],3)`. It is a slight improvement over its base rate of `r round(gospels_rf_cm$overall[5],3)`, which is obtained by simply predicting the most commonly occurring class in the dataset. The table suggests that verses from the ASV and KJV are highly likely to be misclassified as the other. Of the four books, it appears that verses from John is the least likely to be misattributed to others whereas verses from Luke and Mark are especially prone to misattribution. This analysis be further broken down into the versions and the books with fewer classes in each case.  
+With 12 classes to predict, the out-of-sample accuracy is `r round(gospels_rf_cm$overall[1],3)`. It is a slight improvement over its base rate of `r round(gospels_rf_cm$overall[5],3)`, which is obtained by simply predicting the most commonly occurring class in the dataset. The confusion matrix (Table A1) suggests that verses from the ASV and KJV are highly likely to be misclassified as the other. Of the four books, it appears that verses from John is the least likely to be misattributed to others whereas verses from Luke and Mark are especially prone to misattribution. This analysis be further broken down into the versions and the books with fewer classes in each case.  
   
 ```{r random forest 2, echo = FALSE}
 set.seed(1728)
@@ -243,21 +247,18 @@ test_y2 <- gospels_reduced_class$Version[-ids_train2] %>%
   as.factor()
 
 ## tuning random forest
-# mtry <- sqrt(ncol(train_x2)) 
-# ntree <- 51
-# trainControl <- trainControl(method = "cv", number = 5)
-# metric <- "Accuracy"
-# tunegrid <- expand.grid(.mtry = mtry)
-# cl <- makePSOCKcluster(5)
-# registerDoParallel(cl)
+mtry <- sqrt(ncol(train_x2)) 
+tunegrid <- expand.grid(.mtry = mtry)
+cl <- makePSOCKcluster(5)
+registerDoParallel(cl)
 
 # # running rf
-# gospels_rf_version <- train(x = train_x2, y = train_y2,
-#                     method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
-# stopCluster(cl)
-# 
-# # save RDS and then load to speed things up
-# saveRDS(gospels_rf_version, "gospels_rf_version.RDS")
+gospels_rf_version <- train(x = train_x2, y = train_y2,
+                     method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
+stopCluster(cl)
+ 
+# save RDS and then load to speed things up
+saveRDS(gospels_rf_version, "gospels_rf_version.RDS")
 gospels_rf_version <- readRDS("gospels_rf_version.RDS")
 
 # print model
@@ -266,13 +267,14 @@ gospels_rf_version <- readRDS("gospels_rf_version.RDS")
 # predict and confusion matrix
 gospels_rf_version_predict <- predict(gospels_rf_version, newdata = test_x2)
 gospels_rf_version_cm <- confusionMatrix(gospels_rf_version_predict, reference = test_y2, mode = "prec_recall")
-gospels_rf_version_cm$table
-gospels_rf_version_cm$byClass[,5:6]
+gospels_rf_version_cm$byClass[,c(11, 5:7)] %>%
+  kable(caption = "Table 2: Model (Version) Results") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
 ```
   
-In the previous model, it was observed that the poor performance of the classifier could be attributed to errors in distinguishing books and versions with seemingly more errors in classification stemming from separating the versions. Training another random forest model to just classify the verses based on its bible version, the out-of-sample accuracy is `r round(gospels_rf_cm$overall[1],3)`is much higher but it is hardly very accurate if taken  as a whole. Further, we confirm that the `precision` and `recall` rates are especially poor for the ASV and KJV as compared to the WEB.  
+In the previous model, it was observed that the poor performance of the classifier could be attributed to errors in distinguishing books and versions with seemingly more errors in classification stemming from separating the versions. Training another random forest model to just classify the verses based on its bible version, the out-of-sample accuracy is `r round(gospels_rf_cm$overall[1],3)` is much higher but it is hardly very accurate if taken as a whole. Further, we confirm that the precision and recall rates are especially poor for the ASV and KJV as compared to the WEB.  
 
-```{r random forest 3}
+```{r random forest 3, echo = FALSE}
 ##### Book
 ids_train3 <- createDataPartition(gospels_reduced_class$Book, p = 0.7, list = F, times = 1)
 train_x3 <- gospels_dfm[ids_train3,] %>%
@@ -285,21 +287,18 @@ test_y3 <- gospels_reduced_class$Book[-ids_train3] %>%
   as.factor()
 
 ## tuning random forest
-# mtry <- sqrt(ncol(train_x3)) 
-# ntree <- 51
-# trainControl <- trainControl(method = "cv", number = 5)
-# metric <- "Accuracy"
-# tunegrid <- expand.grid(.mtry = mtry)
-# cl <- makePSOCKcluster(5)
-# registerDoParallel(cl)
+mtry <- sqrt(ncol(train_x3)) 
+tunegrid <- expand.grid(.mtry = mtry)
+cl <- makePSOCKcluster(5)
+registerDoParallel(cl)
 
-# # running rf
-# gospels_rf_book <- train(x = train_x3, y = train_y3,
-#                    method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
-# stopCluster(cl)
+# running rf
+gospels_rf_book <- train(x = train_x3, y = train_y3,
+                  method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
+stopCluster(cl)
 
 # save RDS and then load to speed things up
-# saveRDS(gospels_rf_book, "gospels_rf_book.RDS")
+saveRDS(gospels_rf_book, "gospels_rf_book.RDS")
 gospels_rf_book <- readRDS("gospels_rf_book.RDS")
 
 # print model
@@ -308,17 +307,18 @@ gospels_rf_book <- readRDS("gospels_rf_book.RDS")
 # predict and confusion matrix
 gospels_rf_book_predict <- predict(gospels_rf_book, newdata = test_x3)
 gospels_rf_book_cm <- confusionMatrix(gospels_rf_book_predict, reference = test_y3, mode = "prec_recall")
-gospels_rf_book_cm$table
-gospels_rf_book_cm$byClass[,5:7]
+gospels_rf_book_cm$byClass[,c(11,5:7)] %>%
+  kable(caption = "Table 3: Model (Book) Results") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
 ```
-The out of sample accuracy for predicting the book given a verse is `r round(gospels_rf_book_cm$overall[1], 3)`. Of the three classifiers trained and tested thus far, this shows the highest degree of accuracy. However, given that there is a class imbalance, the F1 score as shown above might be more appropriate instead. The high degree of precision in book classification suggests that distinctions between books are relatively strong and retained over the various versions. However, the book of Mark has a uncharacteristically low recall score of `r gospels_rf_book_cm$byClass[3,6]`. This suggests that verses in Mark tend to be misattributed to other books. This lends some support to the theological argument of Marcan Priority in which the Gospels of Matthew and Luke are based on Mark (Goodacre, 2000; Murai, 2006).   
+The out of sample accuracy for predicting the book given a verse is `r round(gospels_rf_book_cm$overall[1], 3)`. Of the three classifiers trained and tested thus far, this shows the highest degree of accuracy. However, given that there is a class imbalance, the F1 score as shown above might be more appropriate instead. The high degree of precision in book classification suggests that distinctions between books are relatively strong and retained over the various versions. However, the book of Mark has a uncharacteristically low recall score of `r round(gospels_rf_book_cm$byClass[3,6], 3)`. This suggests that verses in Mark tend to be misattributed to other books. This lends some support to the theological argument of Marcan Priority in which the Gospels of Matthew and Luke are based on Mark (Goodacre, 2000; Murai, 2006).   
 
 #### Clusters  
     
 Murai (2006) argued that the Gospels contain verses that are echoed in one another in syncoptic fashion. Thus, various chapters across the four Gospel books should exhibit high degrees of similarity after controlling for Bible version. This is especially so given the argument of Marcan Priority where Luke and Matthew are derived from the book of Mark.  
   
 The WEB was used to test this expectation. The WEB is the most recently translated copy of the three. Removal of contemporary stopwords can thus be performed with relative confidence that textual meanings are not severely redacted. This leaves behind proper nouns and other less commonly used words that will aid in the clustering at the chapter level. Verses can be relatively short and easily taken out of context when stopwords are removed. Collapsing them into chapters can provide a better approximation of chapter meaning.    
-```{r PCA, echo = FALSE, fig.height=8, fig.width=10}
+```{r PCA, echo = FALSE, fig.height=10, fig.width=12}
 web_collapsed_pca <- all_bibles %>%
   filter(Book %in% c("Mark", "John", "Luke", "Matthew")) %>%
   select(Book, Chapter, `World English Bible`) %>%
@@ -343,7 +343,8 @@ web_chapter_pca_df$Chapter <- web_collapsed_pca$Chapter
 web_chapter_pca_df$Book <- web_collapsed_pca$Book
 
 fviz_eig(web_chapter_pca, addlabels = T,
-         main = "Screeplot of WEB DFM's Principal Components")
+         main = "Screeplot of WEB DFM's Principal Components",
+         caption = "Plot 1: Screeplot of principal components")
 
 
 # ggplot(web_chapter_pca_df, aes(PC1, PC2, label = Chapter)) + 
@@ -356,25 +357,57 @@ fviz_eig(web_chapter_pca, addlabels = T,
 # # Distance
 chapter_distance <- get_dist(web_chapter_mat_scale)
 fviz_dist(chapter_distance, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07")) + 
-  labs(title = "Euclidean Distance of Each Chapter", fill = "Distance")
+  labs(title = "Euclidean Distance of Each Chapter", 
+       fill = "Distance",
+       caption = "Plot 2: Distance matrix of each chapter")
 ```
   
 As a baseline of comparison, the Euclidean distance between each book can be calculated and plotted. For the most part, books and chapters are distinct from one another with the exception of certain chapters that echo each other content-wise such as Mark 11 and Matthew 21. Curiously, Luke 19 and 20 are dissimilar, possibly because the same content is now split between two chapters.  The screeplot above suggests that dimensionality has not been significantly reduced. The first two dimensions account for less than 7% of the variability. Thus, principal components analysis is not particularly useful in this case as the trade-off between dimensionality and variance is extremely steep.  
   
-```{r kmeans}
+```{r kmeans, echo=FALSE, fig.height=8, fig.width=10}
 # KMeans
 set.seed(1728)
-fviz_nbclust(web_chapter_mat_scale, kmeans, method = "silhouette", k.max = 28)
+fviz_nbclust(web_chapter_mat_scale, kmeans, method = "silhouette", k.max = 28) + 
+  theme(axis.title = element_text(size = 8),
+        axis.text = element_text(size = 8),
+        title = element_text(size = 11)) + 
+  labs(title = "Silhouette Score",
+       caption = "Plot 3: Optimal Number of Clusters")
 k5 <- kmeans(web_chapter_mat_scale, 5, nstart = 25)
-fviz_cluster(k5, data = web_chapter_mat_scale)
+fviz_cluster(k5, data = web_chapter_mat_scale, labelsize = 3) + 
+  theme(axis.title = element_text(size = 8),
+        axis.text = element_text(size = 8),
+        title = element_text(size = 11)) + 
+  labs(title = "Cluster Plot: Chapters",
+       caption = "Plot 4: KMeans Clustering of Chapters")
 ```
     
 KMeans clustering was then performed to see whether books can be identified from one another, in which case there ought to be four clusters. Alternatively, the books can also be clustered by content similarity, in which case there should be anywhere between 16 and 28 clusters given that shortest book has 16 chapters, and the longest has 28. This assumes that content order and chapter delimitation is highly similar. The silhouette score plot suggests that the ideal number of clusters is 5. Plotting the five clusters using the first two principal component, the following observations about the clusters can be made:  
 1. Cluster 1 contains chapters on the crucifixion of Jesus.  
-2. Cluster 2 contains chapters on the betrayal of Jesus by Judas and the Last Supper.  
+2. Cluster 4 contains chapters on the betrayal of Jesus by Judas and the Last Supper.  
 3. Cluster 3 and 4 are outliers.  
-4. Cluster 5 is most probably an amalgamation of dissimilar chapters, given that most chapters are more different than they are similar, as the Euclidean distance plot suggests.  
+4. Cluster 2 is most probably an amalgamation of dissimilar chapters, given that most chapters are more different than they are similar, as the Euclidean distance plot suggests.  
   
-  
+#### Appendix
+```{r Appendix, echo=FALSE}
+# rf 1
+gospels_rf_cm$table %>%
+  kable(caption = "Table A1: Predicting Book and Version with Random Forests | Prediction(V), Reference(H)") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) %>%
+  pack_rows("ASV", 1,4) %>%
+  pack_rows("KJV", 5,8) %>%
+  pack_rows("WEB",9,12)
+
+# rf 2
+gospels_rf_version_cm$table %>%
+  kable(caption = "Table A2: Predicting Version with Random Forests | Prediction(V), Reference(H)") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
+# rf 3
+gospels_rf_book_cm$table %>%
+  kable(caption = "Table A3: Predicting Book with Random Forests | Prediction(V), Reference(H)") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))  
+```
+
   
 
