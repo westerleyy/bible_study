@@ -1,9 +1,9 @@
 ---
 title: "The Word"
-subtitle: "An textual analysis of the King James Version, American Standard Version, and World English Bible."
+subtitle: "A textual analysis of the King James Version, American Standard Version, and World English Bible."
 author: "Wesley Chioh"
 date: "April 9, 2020"
-output: word_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -23,6 +23,7 @@ library(caret)
 library(doParallel)
 library(cluster)
 library(kableExtra)
+library(flextable)
 
 #reading in bible
 all_bibles <- read_csv("bibles.csv")
@@ -92,17 +93,17 @@ web_books_dfm <- dfm(web_collapsed_vec, tolower = T, remove_punct = T, remove_nu
 
 #### Introduction  
   
-The New York Times bestseller list changes every week. But on the time scale of centuries and millenia, the longstanding global bestseller has not. It is most probably the Bible. The version of the Bible commonly used today is quite different in style and phrasing from that a mere century ago. It undergoes revisions for clarity and ease of comprehension as linguistic norms change. The subject matter and meaning of its verses have not, however. But have they?    
+The New York Times copyrighted bestseller list changes every week. But on the time scale of centuries and millennia, the longstanding global copyright-free bestseller has not. It is most probably the Bible. The Bible commonly used today is quite different in style and phrasing from that a mere century ago. It undergoes revisions for clarity and ease of comprehension as linguistic norms change. The subject matter and meaning of its verses have not, however. But have they?    
   
-The Bible itself can be seen as a "multi-parallel corpora" (Xia and Yarowsky, 2017, p.448) with multiple versions of what is essentially a highly similar corpus. The Bible used today contains 66 books, each of which is distinct from another in terms of authorship, stylometry and topics. However, the degree to which they differ depends on the books in question. Some, such as the four Gospels of Matthew, Mark, Luke, and John are among the most similar in terms of content and topics, despite being written by different authors. In fact, the Gospels are also known as the Synoptic Gospels (Linmans, 1998; Murai, 2006) with corresponding sections among the four. Murai (2006) argues that from a network analysis perspective, they can be characterized as a series of multiple one-to-many relationships.  
+The Bible is a "multi-parallel corpora" (Xia and Yarowsky, 2017, p.448) with multiple versions of what is essentially a highly similar corpus. There are 66 books in the Bible, each of which is distinct from another in terms of authorship, stylometry and topics. Some, such as the four Gospels of Matthew, Mark, Luke, and John are among the most similar in terms of content and topics, despite being written by different authors. The Gospels are also known as the Synoptic Gospels (Linmans, 1998; Murai, 2006) with corresponding sections. Murai (2013) argues that from a network analysis perspective, they can be characterized as a series of multiple one-to-many relationships.  
   
-Thus, this paper will seek to test the hypothesis that despite controlling for topical similarity, the four Gospel books remain stylometrically distinct from another. This distinction is retained over the ages and various versions of the Bible. This paper will use the King James Version (KJV), American Standard Version (ASV), and World English Bible (WEB) as the basis of comparison.  
+Thus, this paper will seek to test the hypothesis that despite controlling for topical similarity, the four Gospel books remain stylistically distinct from another. This distinction is retained over the ages and various versions of the Bible. This paper will use the King James Version (KJV), American Standard Version (ASV), and World English Bible (WEB) as the basis of comparison.  
   
 #### Similarity  
   
-First, a spreadsheet of various versions of the Bible was downloaded from BibleHub and the KJV, ASV,and WEB were selected. The preprocessing involved lower-casing and stemming each word, and removing punctuation and numerals. Stopwords were not removed because the English stopwords available through `quanteda` are contemporaneous with English language norms today but not with the times when the KJV and ASV were published. Furthermore, removal of stopwords is likely to result in document-feature matrices (DFMs) with high frequencies of proper nouns in the modern WEB, as well as other stopwords in the older KJV and ASV. This results in an imbalance that might adversely affect a true assessment of their similarities and differences.  
+First, a spreadsheet of various versions of the Bible was downloaded from BibleHub and the KJV, ASV, and WEB were selected. The preprocessing involved lower-casing and stemming each word, and removing punctuation and numerals. Stopwords were not removed because the English stopwords available through `quanteda` are contemporaneous with English language norms today but not with the Elizabethan English of the KJV and ASV (Hamlin, 2011). Furthermore, removal of stopwords is likely to result in document-feature matrices (DFMs) with high frequencies of proper nouns in the modern WEB, as well as other stopwords in the older KJV and ASV. This results in an imbalance that might adversely affect a true assessment of their similarities and differences.  
   
-Using a bag of words approach, we can calculate the cosine similarity among the four Gospel books. In so far as word choice and frequency contains latent information, it hints at the relative similarity of the four books in terms of topics, and sentiments. 
+From a bag of words perspective, word choice and frequency contain latent information. Cosine similarity thus hints at the relative similarity of the four books in terms of topics, and sentiments. 
 ```{r KJV cosine_similarity, echo=FALSE}
 # cosine similarity
 cosine_similarity_mat <- sapply(40:43, function(x){
@@ -113,7 +114,10 @@ cosine_similarity_mat <- sapply(40:43, function(x){
 })
 row.names(cosine_similarity_mat) <- c("Matthew", "Mark", "Luke", "John")
 colnames(cosine_similarity_mat) <- c("Matthew", "Mark", "Luke", "John")
-datatable(cosine_similarity_mat, caption = "King James Version")
+cosine_similarity_mat %>%
+  kable(caption = "Table 1: Cosine Similarity of KJV Gospel Books") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+kjv_sim <- paste(round(mean(cosine_similarity_mat),2), "%", sep = "")
 ```
 
 ```{r ASV cosine Similarity, echo = FALSE}
@@ -126,7 +130,10 @@ cosine_similarity_mat <- sapply(1:4, function(x){
 })
 row.names(cosine_similarity_mat) <- c("Matthew", "Mark", "Luke", "John")
 colnames(cosine_similarity_mat) <- c("Matthew", "Mark", "Luke", "John")
-datatable(cosine_similarity_mat, caption = "American Standard Version")
+cosine_similarity_mat%>%
+  kable(caption = "Table 2: Cosine Similarity of ASV Gospel Books") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+asv_sim <- paste(round(mean(cosine_similarity_mat),2), "%", sep = "")
 ```
 
 ```{r WEB Cosine Similarity, echo = FALSE}
@@ -139,10 +146,13 @@ cosine_similarity_mat <- sapply(1:4, function(x){
 })
 row.names(cosine_similarity_mat) <- c("Matthew", "Mark", "Luke", "John")
 colnames(cosine_similarity_mat) <- c("Matthew", "Mark", "Luke", "John")
-datatable(cosine_similarity_mat, caption = "World English Bible")
+cosine_similarity_mat %>%
+  kable(caption = "Table 3: Cosine Similarity of WEB Gospel Books") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+web_sim <- paste(round(mean(cosine_similarity_mat),2), "%", sep = "")
 ```
   
-From the tables above, the average cosine similarity of the four Gospel books across the KJV, ASV,and WEB is 89.1%, 95.4%, 96.1% respectively. This is fairly high, but they are not identically so. The degree of similarity between the books is much higher for the ASV and WEB as compared to the KJV as proven by the mean cosine similarity score. The ASV and WEB agree on the relative similarity of Matthew, Mark, and Luke, but not the KJV. For example, in the KJV, Matthew is most similar to Mark. But in both the ASV and WEB, Mathew is most similar to John. Furthermore, the ASV and WEB suggest that Mark and Luke are more than 98% similar; but in the KJV, it is Matthew which is almost identical to Mark, not Luke. However, the three versions agree that John is most similar to Mark and Luke.    
+From the tables above, the average cosine similarity of the four Gospel books across the KJV, ASV, and WEB is `r kjv_sim`, `r asv_sim`, `r web_sim` respectively. This is fairly high, but they are not identically so. The degree of similarity between the books is much higher for the ASV and WEB as compared to the KJV. The ASV and WEB agree on the relative similarity of Matthew, Mark, and Luke, but not the KJV. For example, in the KJV, Matthew is most similar to Mark. But in both the ASV and WEB, Mathew is most similar to John. Furthermore, the ASV and WEB suggest that Mark and Luke are more than 98% similar; but in the KJV, it is Matthew which is almost identical to Mark, not Luke. However, the three versions agree that John is most similar to Mark and Luke.    
 
 #### Separability  
   
@@ -160,7 +170,9 @@ gospels_class <- all_bibles %>%
   group_by(Book, Version) %>%
   summarise(Count = n()) %>%
   pivot_wider(.,names_from = "Version", values_from = "Count")
-datatable(gospels_class, caption = "Class Imbalance: Number of verses in each book and version")
+gospels_class %>%
+  kable(caption = "Table 4: Class Imbalance - Number of verses in each book and version") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
 ```
   
 
@@ -191,22 +203,22 @@ test_y1 <- gospels$Class[-ids_train] %>%
   as.factor()
 
 ## tuning random forest
-mtry <- sqrt(ncol(train_x1)) 
-ntree <- 101
-trainControl <- trainControl(method = "cv", number = 10, search = "grid" )
-metric <- "Accuracy"
-tunegrid <- expand.grid(.mtry = mtry)
-cl <- makePSOCKcluster(5)
-registerDoParallel(cl)
- 
-# running rf
-gospels_rf <- train(x = train_x1, y = train_y1,
-                  method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
-stopCluster(cl)
-
-# save RDS and then load to speed things up
-saveRDS(gospels_rf, "gospels_rf.RDS")
-gospels_rf <- readRDS("gospels_rf.RDS")
+# mtry <- sqrt(ncol(train_x1)) 
+# ntree <- 101
+# trainControl <- trainControl(method = "cv", number = 10, search = "grid" )
+# metric <- "Accuracy"
+# tunegrid <- expand.grid(.mtry = mtry)
+# cl <- makePSOCKcluster(5)
+# registerDoParallel(cl)
+#  
+# # running rf
+# gospels_rf <- train(x = train_x1, y = train_y1,
+#                   method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
+# stopCluster(cl)
+# 
+# # save RDS and then load to speed things up
+# saveRDS(gospels_rf, "./models/gospels_rf.RDS")
+gospels_rf <- readRDS("./models/gospels_rf.RDS")
 
 # print model
 # print(gospels_rf)
@@ -215,10 +227,10 @@ gospels_rf <- readRDS("gospels_rf.RDS")
 gospels_rf_predict <- predict(gospels_rf, newdata = test_x1)
 gospels_rf_cm <- confusionMatrix(gospels_rf_predict, reference = test_y1, mode = "prec_recall")
 gospels_rf_cm$byClass[,c(11,5:7)] %>%
-  kable(caption = "Table 1: Model (Book and Version) Results") %>%
+  kable(caption = "Table 5: Model (Book and Version) Results") %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed")) 
 ```
-With 12 classes to predict, the out-of-sample accuracy is `r round(gospels_rf_cm$overall[1],3)`. It is a slight improvement over its base rate of `r round(gospels_rf_cm$overall[5],3)`, which is obtained by simply predicting the most commonly occurring class in the dataset. The confusion matrix (Table A1) suggests that verses from the ASV and KJV are highly likely to be misclassified as the other. Of the four books, it appears that verses from John is the least likely to be misattributed to others whereas verses from Luke and Mark are especially prone to misattribution. This analysis be further broken down into the versions and the books with fewer classes in each case.  
+With 12 classes to predict, the out-of-sample accuracy is `r round(gospels_rf_cm$overall[1],3)`. It is a slight improvement over its base rate of `r round(gospels_rf_cm$overall[5],3)`, which is obtained by simply predicting the most commonly occurring class in the dataset. The confusion matrix (Table A1) suggests that verses from the ASV and KJV are highly likely to be misclassified as the other. Of the four books, it appears that verses from John is the least likely to be misattributed to others whereas verses from Luke and Mark are especially prone to misattribution. This analysis can be further broken down into the versions and the books with fewer classes in each case.  
   
 ```{r random forest 2, echo = FALSE}
 set.seed(1728)
@@ -246,20 +258,20 @@ test_x2 <- gospels_dfm[-ids_train2,] %>%
 test_y2 <- gospels_reduced_class$Version[-ids_train2] %>%
   as.factor()
 
-## tuning random forest
-mtry <- sqrt(ncol(train_x2)) 
-tunegrid <- expand.grid(.mtry = mtry)
-cl <- makePSOCKcluster(5)
-registerDoParallel(cl)
-
-# # running rf
-gospels_rf_version <- train(x = train_x2, y = train_y2,
-                     method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
-stopCluster(cl)
- 
-# save RDS and then load to speed things up
-saveRDS(gospels_rf_version, "gospels_rf_version.RDS")
-gospels_rf_version <- readRDS("gospels_rf_version.RDS")
+# ## tuning random forest
+# mtry <- sqrt(ncol(train_x2)) 
+# tunegrid <- expand.grid(.mtry = mtry)
+# cl <- makePSOCKcluster(5)
+# registerDoParallel(cl)
+# 
+# # # running rf
+# gospels_rf_version <- train(x = train_x2, y = train_y2,
+#                      method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
+# stopCluster(cl)
+#  
+# # save RDS and then load to speed things up
+# saveRDS(gospels_rf_version, "./models/gospels_rf_version.RDS")
+gospels_rf_version <- readRDS("./models/gospels_rf_version.RDS")
 
 # print model
 # print(gospels_rf_version)
@@ -268,11 +280,11 @@ gospels_rf_version <- readRDS("gospels_rf_version.RDS")
 gospels_rf_version_predict <- predict(gospels_rf_version, newdata = test_x2)
 gospels_rf_version_cm <- confusionMatrix(gospels_rf_version_predict, reference = test_y2, mode = "prec_recall")
 gospels_rf_version_cm$byClass[,c(11, 5:7)] %>%
-  kable(caption = "Table 2: Model (Version) Results") %>%
+  kable(caption = "Table 6: Model (Version) Results") %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
 ```
   
-In the previous model, it was observed that the poor performance of the classifier could be attributed to errors in distinguishing books and versions with seemingly more errors in classification stemming from separating the versions. Training another random forest model to just classify the verses based on its bible version, the out-of-sample accuracy is `r round(gospels_rf_cm$overall[1],3)` is much higher but it is hardly very accurate if taken as a whole. Further, we confirm that the precision and recall rates are especially poor for the ASV and KJV as compared to the WEB.  
+In the previous model, it was observed that the poor performance of the classifier could be attributed to errors in separating the versions. Training another random forest model to just classify the verses based on its bible version, the out-of-sample accuracy is `r round(gospels_rf_cm$overall[1],3)` is similar to the previous model. Further, the precision and recall rates are especially poor for the ASV and KJV as compared to the WEB. This confirms the notion that the KJV and ASV are highly similar and difficult to classify.   
 
 ```{r random forest 3, echo = FALSE}
 ##### Book
@@ -286,20 +298,20 @@ test_x3 <- gospels_dfm[-ids_train3,] %>%
 test_y3 <- gospels_reduced_class$Book[-ids_train3] %>%
   as.factor()
 
-## tuning random forest
-mtry <- sqrt(ncol(train_x3)) 
-tunegrid <- expand.grid(.mtry = mtry)
-cl <- makePSOCKcluster(5)
-registerDoParallel(cl)
-
-# running rf
-gospels_rf_book <- train(x = train_x3, y = train_y3,
-                  method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
-stopCluster(cl)
-
-# save RDS and then load to speed things up
-saveRDS(gospels_rf_book, "gospels_rf_book.RDS")
-gospels_rf_book <- readRDS("gospels_rf_book.RDS")
+# ## tuning random forest
+# mtry <- sqrt(ncol(train_x3)) 
+# tunegrid <- expand.grid(.mtry = mtry)
+# cl <- makePSOCKcluster(5)
+# registerDoParallel(cl)
+# 
+# # running rf
+# gospels_rf_book <- train(x = train_x3, y = train_y3,
+#                   method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
+# stopCluster(cl)
+# 
+# # save RDS and then load to speed things up
+# saveRDS(gospels_rf_book, "./models/gospels_rf_book.RDS")
+gospels_rf_book <- readRDS("./models/gospels_rf_book.RDS")
 
 # print model
 # print(gospels_rf_book)
@@ -308,17 +320,15 @@ gospels_rf_book <- readRDS("gospels_rf_book.RDS")
 gospels_rf_book_predict <- predict(gospels_rf_book, newdata = test_x3)
 gospels_rf_book_cm <- confusionMatrix(gospels_rf_book_predict, reference = test_y3, mode = "prec_recall")
 gospels_rf_book_cm$byClass[,c(11,5:7)] %>%
-  kable(caption = "Table 3: Model (Book) Results") %>%
+  kable(caption = "Table 7: Model (Book) Results") %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
 ```
-The out of sample accuracy for predicting the book given a verse is `r round(gospels_rf_book_cm$overall[1], 3)`. Of the three classifiers trained and tested thus far, this shows the highest degree of accuracy. However, given that there is a class imbalance, the F1 score as shown above might be more appropriate instead. The high degree of precision in book classification suggests that distinctions between books are relatively strong and retained over the various versions. However, the book of Mark has a uncharacteristically low recall score of `r round(gospels_rf_book_cm$byClass[3,6], 3)`. This suggests that verses in Mark tend to be misattributed to other books. This lends some support to the theological argument of Marcan Priority in which the Gospels of Matthew and Luke are based on Mark (Goodacre, 2000; Murai, 2006).   
+The out of sample accuracy for predicting the book given a verse is `r round(gospels_rf_book_cm$overall[1], 3)`. Of the three classifiers trained and tested thus far, this shows the highest degree of accuracy. However, given that there is a class imbalance, the F1 score as shown above might be more appropriate instead. The high degree of precision in book classification suggests that distinctions between books are relatively strong and retained over the various versions. However, the book of Mark has an uncharacteristically low recall score of `r round(gospels_rf_book_cm$byClass[3,6], 3)`. This suggests that verses in Mark tend to be misattributed to other books.  
 
 #### Clusters  
     
-Murai (2006) argued that the Gospels contain verses that are echoed in one another in syncoptic fashion. Thus, various chapters across the four Gospel books should exhibit high degrees of similarity after controlling for Bible version. This is especially so given the argument of Marcan Priority where Luke and Matthew are derived from the book of Mark.  
-  
-The WEB was used to test this expectation. The WEB is the most recently translated copy of the three. Removal of contemporary stopwords can thus be performed with relative confidence that textual meanings are not severely redacted. This leaves behind proper nouns and other less commonly used words that will aid in the clustering at the chapter level. Verses can be relatively short and easily taken out of context when stopwords are removed. Collapsing them into chapters can provide a better approximation of chapter meaning.    
-```{r PCA, echo = FALSE, fig.height=10, fig.width=12}
+To test this further, kmeans clustering was performed to test for the optimal number of clusters and the ability of the kmeans algorithm to perfectly separate the corpus into four distinct clusters, each corresponding to a book. Collapsing verses into chapters can provide a better approximation of chapter meaning as they can be relatively short and easily taken out of context.  Furthermore, stylometric signatures should be stronger at the chapter level.     
+```{r PCA, echo = FALSE, fig.height=5, fig.width=6}
 web_collapsed_pca <- all_bibles %>%
   filter(Book %in% c("Mark", "John", "Luke", "Matthew")) %>%
   select(Book, Chapter, `World English Bible`) %>%
@@ -330,7 +340,7 @@ names(web_collapsed_pca_vec) <- web_collapsed_pca$Chapter
 
 # create DFM
 # convert to matrix
-web_chapter_dfm <- dfm(web_collapsed_pca_vec, tolower = T, remove_punct = T, remove_numbers = T, stem = T, remove = stopwords("english"))
+web_chapter_dfm <- dfm(web_collapsed_pca_vec, tolower = T, remove_punct = T, remove_numbers = T, stem = T)
 web_chapter_mat <- convert(web_chapter_dfm, to = "matrix")
 web_chapter_mat_scale <- scale(web_chapter_mat)
 # PCA
@@ -345,15 +355,11 @@ web_chapter_pca_df$Book <- web_collapsed_pca$Book
 fviz_eig(web_chapter_pca, addlabels = T,
          main = "Screeplot of WEB DFM's Principal Components",
          caption = "Plot 1: Screeplot of principal components")
-
-
-# ggplot(web_chapter_pca_df, aes(PC1, PC2, label = Chapter)) + 
-#   geom_point(aes(color = Book)) + 
-#   #geom_text(size = 3, nudge_y = 0.2, nudge_x = 0.5) + 
-#   coord_cartesian(xlim = c(-3, 3), ylim = c(-5, 2.5)) + 
-#   labs(title = "First Two Principal Components of WEB DFM",
-#        subtitle = "Zoomed to -3:3,-5:2.5 for greater clarity")
-
+```
+  
+The screeplot above suggests that dimensionality has not been significantly reduced. The first two dimensions account for less than 7% of the variability. Thus, principal components analysis is not particularly useful in this case as the trade-off between dimensionality and variance is extremely steep.    
+  
+```{r euclidean distance, echo=FALSE, fig.width=10, fig.height=8}
 # # Distance
 chapter_distance <- get_dist(web_chapter_mat_scale)
 fviz_dist(chapter_distance, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07")) + 
@@ -362,19 +368,25 @@ fviz_dist(chapter_distance, gradient = list(low = "#00AFBB", mid = "white", high
        caption = "Plot 2: Distance matrix of each chapter")
 ```
   
-As a baseline of comparison, the Euclidean distance between each book can be calculated and plotted. For the most part, books and chapters are distinct from one another with the exception of certain chapters that echo each other content-wise such as Mark 11 and Matthew 21. Curiously, Luke 19 and 20 are dissimilar, possibly because the same content is now split between two chapters.  The screeplot above suggests that dimensionality has not been significantly reduced. The first two dimensions account for less than 7% of the variability. Thus, principal components analysis is not particularly useful in this case as the trade-off between dimensionality and variance is extremely steep.  
+As a baseline of comparison, the Euclidean distance between each book was calculated and plotted. For the most part, books and chapters are distinct from one another with the exception of certain chapters that echo each other content-wise such as Mark 11 and Matthew 21. Curiously, Luke 19 and 20 are dissimilar, possibly because the same content is  split between two chapters.  
   
-```{r kmeans, echo=FALSE, fig.height=8, fig.width=10}
-# KMeans
-set.seed(1728)
+```{r silhouette score,fig.height=5, fig.width=7, echo=FALSE}
 fviz_nbclust(web_chapter_mat_scale, kmeans, method = "silhouette", k.max = 28) + 
   theme(axis.title = element_text(size = 8),
         axis.text = element_text(size = 8),
         title = element_text(size = 11)) + 
   labs(title = "Silhouette Score",
        caption = "Plot 3: Optimal Number of Clusters")
-k5 <- kmeans(web_chapter_mat_scale, 5, nstart = 25)
-fviz_cluster(k5, data = web_chapter_mat_scale, labelsize = 3) + 
+```
+  
+  
+```{r kmeans, echo=FALSE, fig.height=8, fig.width=10}
+# KMeans
+set.seed(1728)
+# k5 <- kmeans(web_chapter_mat_scale, 5, nstart = 25)
+# saveRDS(k5, "./models/kmeans.RDS")
+k5 <- readRDS("./models/kmeans.RDS")
+fviz_cluster(k5, data = web_chapter_mat_scale, labelsize = 8) + 
   theme(axis.title = element_text(size = 8),
         axis.text = element_text(size = 8),
         title = element_text(size = 11)) + 
@@ -384,9 +396,35 @@ fviz_cluster(k5, data = web_chapter_mat_scale, labelsize = 3) +
     
 KMeans clustering was then performed to see whether books can be identified from one another, in which case there ought to be four clusters. Alternatively, the books can also be clustered by content similarity, in which case there should be anywhere between 16 and 28 clusters given that shortest book has 16 chapters, and the longest has 28. This assumes that content order and chapter delimitation is highly similar. The silhouette score plot suggests that the ideal number of clusters is 5. Plotting the five clusters using the first two principal component, the following observations about the clusters can be made:  
 1. Cluster 1 contains chapters on the crucifixion of Jesus.  
-2. Cluster 4 contains chapters on the betrayal of Jesus by Judas and the Last Supper.  
-3. Cluster 3 and 4 are outliers.  
-4. Cluster 2 is most probably an amalgamation of dissimilar chapters, given that most chapters are more different than they are similar, as the Euclidean distance plot suggests.  
+2. Cluster 3 contains chapters on the betrayal of Jesus by Judas and the Last Supper.  
+3. Cluster 2 and 5 are outliers.  
+4. Cluster 4 is most probably an amalgamation of dissimilar chapters, given that most chapters are more different than they are similar, as the Euclidean distance plot suggests.  
+Surprisingly, the KMeans cluster plot do not echo the ability of the random forest models in separating the each of the Gospel books from one another. 
+
+#### Discussion  
+  
+Having performed the analyses detailed above, it is possible to make the argument that using a bag-of-words approach, the three versions are highly similar in terms of word choice, and by extension, meaning. This can be seen from the difficulty that the random forest models have in distinguishing between the KJV and the ASV even though they were published three centuries apart. This is because the "ASV maintained close ties to Elizabethan English" (Hamlin, 2011, pp.165-166), which came to be known as "formal equivalence" (p.166). On the other hand, even though the WEB is an update of the ASV, it is written in modern-day informal English which sets it apart from the KJV and ASV. This implies that the English language has evolved enough over the years for a supervised machine learning technique to set it apart.  
+  
+On the issue of authorship, the ability of a random forest model to separate the four books across versions imply that verses in all four books retain unique stylometric traces of authorship that have been preserved over the years. In the case of the WEB, of the verses which were misclassified as thoseof other versions, 87% of them were attributed to the correct book albeit the wrong version.   
+  
+However, the book of Mark is often misattributed to Luke and Matthew. This lends some support to the theological argument of Marcan Priority in which the Gospels of Matthew and Luke are based on Mark (Goodacre, 2000; Murai, 2006), and therefore similar. To extend this argument a little further, one might expect to find four distinct clusters when performing kmeans analysis on verses collapsed into clusters, with some chapters from Mark, Luke, and Matthew mixed together.   
+  
+However, this expectation was not supported. Instead, some clusters were topical in nature. Murai & Tokosumi (2006) argued that the Gospels contain verses that are echoed in one another in syncoptic fashion. Thus, various chapters across the four Gospel books should exhibit high degrees of similarity after controlling for Bible version. However, it is curious that this was not the case for all topics discussed in the Gospel Books, evident from the Euclidean distance plot, and the optimal number of KMeans clusters. This could be because of chapter delimitation where content covered in one chapter in a book, can be covered in two in another. This reduces the similarity of each chapter as a document. 
+  
+#### Conclusion  
+  
+Thus, what is observed here is an inability to satisfactorily explain why a random forest model is better able to classify and predict than a KMeans model. Neither can the hypothesis that the four Gospel are stylometrically distinct be conclusively supported. An extension to this work will ideally include some form of topic modeling across chapters or verses. This will test topical similarity. Further, if there are common topics and proper nouns among the books, then burstiness can be used to explore intensity. Normalized for length, and relative to one another, burstiness should be identical as the books cover the same issues over the same timeline. In the final summary, it appears fitting for a text that has been extensively studied for millenia to retain inexplicable features that continue to capture future collective interest.       
+  
+  
+#### References  
+  
+Goodacre, M. (2000). A Monopoly on Marcan Priority? Fallacies at the Heart of Q. In Society of Biblical Literature Seminar Papers 2000 (pp. 538-622).  
+Hamlin, H. (2011). The King James Bible after 400 years: literary, linguistic, and cultural influences. Cambridge Univ. Press.  
+Linmans, A. J. M. (1998). Correspondence analysis of the Synoptic Gospels. Literary and linguistic computing, 13(1), 1-13.  
+McDonald, D. (2014). A text mining analysis of religious texts. The Journal of Business Inquiry, 13(1), 27-47.  
+Murai, H., & Tokosumi, A. (2006). Synoptic Network Analysis of the Four Gospels. In SCIS & ISIS SCIS & ISIS 2006 (pp. 1590-1595). Japan Society for Fuzzy Theory and Intelligent Informatics.  
+Murai, H. (2013). Exegetical Science for the Interpretation of the Bible: Algorithms and Software for Quantitative Analysis of Christian Documents. In Software Engineering, Artificial Intelligence, Networking and Parallel/Distributed Computing (pp. 67-86). Springer, Heidelberg.  
+Xia, P., & Yarowsky, D. (2017, November). Deriving Consensus for Multi-Parallel Corpora: an English Bible Study. In Proceedings of the Eighth International Joint Conference on Natural Language Processing (Volume 2: Short Papers) (pp. 448-453).  
   
 #### Appendix
 ```{r Appendix, echo=FALSE}

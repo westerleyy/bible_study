@@ -24,6 +24,7 @@ I prefer R, just like I will take acai over pitaya anyday. I can do it in Python
   
 ### Methods  
   
-1. Cosine Similarity
+1. Distance and Similarity: Euclidean Distance and Cosine Similarity
 2. Principal Component Analysis
 3. Random Forests  
+4. KMeans Clustering
