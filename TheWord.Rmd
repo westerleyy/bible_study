@@ -11,19 +11,12 @@ knitr::opts_chunk$set(echo = TRUE)
 # loading libraries
 library(quanteda)
 library(tidyverse)
-library(topicmodels)
 library(ggplot2)
-library(lsa)
-library(stm)
 library(factoextra)
-library(text2vec)
-library(plotly)
-library(DT)
 library(caret)
 library(doParallel)
 library(cluster)
 library(kableExtra)
-library(flextable)
 
 #reading in bible
 all_bibles <- read_csv("bibles.csv")
@@ -191,6 +184,7 @@ gospels <- all_bibles %>%
 gospels_dfm <- dfm(gospels$value, stem = T, remove_punct = T, tolower = T) %>%
   dfm_trim(min_termfreq = 5, min_docfreq = 3) %>%
   convert("matrix")
+gospels_dfm <- scale(gospels_dfm)
 gospels$Class <- as.factor(gospels$Class)
 ids_train <- createDataPartition(gospels$Class, p = 0.7, list = F, times = 1)
 train_x1 <- gospels_dfm[ids_train,] %>%
@@ -210,10 +204,10 @@ test_y1 <- gospels$Class[-ids_train] %>%
 # tunegrid <- expand.grid(.mtry = mtry)
 # cl <- makePSOCKcluster(5)
 # registerDoParallel(cl)
-#  
-# # running rf
+  
+# running rf
 # gospels_rf <- train(x = train_x1, y = train_y1,
-#                   method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
+#                  method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
 # stopCluster(cl)
 # 
 # # save RDS and then load to speed things up
@@ -246,6 +240,7 @@ gospels_reduced_class <- all_bibles %>%
 gospels_dfm <- dfm(gospels_reduced_class$value, stem = T, remove_punct = T, tolower = T) %>%
   dfm_trim(min_termfreq = 5, min_docfreq = 3) %>%
   convert("matrix")
+gospels_dfm <- scale(gospels_dfm)
 gospels_reduced_class$Book <- as.factor(gospels_reduced_class$Book)
 gospels_reduced_class$Version <- as.factor(gospels_reduced_class$Version)
 ids_train2 <- createDataPartition(gospels_reduced_class$Version, p = 0.7, list = F, times = 1)
@@ -258,18 +253,18 @@ test_x2 <- gospels_dfm[-ids_train2,] %>%
 test_y2 <- gospels_reduced_class$Version[-ids_train2] %>%
   as.factor()
 
-# ## tuning random forest
+## tuning random forest
 # mtry <- sqrt(ncol(train_x2)) 
 # tunegrid <- expand.grid(.mtry = mtry)
 # cl <- makePSOCKcluster(5)
 # registerDoParallel(cl)
-# 
-# # # running rf
+ 
+# running rf
 # gospels_rf_version <- train(x = train_x2, y = train_y2,
-#                      method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
+#                     method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
 # stopCluster(cl)
-#  
-# # save RDS and then load to speed things up
+  
+# save RDS and then load to speed things up
 # saveRDS(gospels_rf_version, "./models/gospels_rf_version.RDS")
 gospels_rf_version <- readRDS("./models/gospels_rf_version.RDS")
 
@@ -306,10 +301,10 @@ test_y3 <- gospels_reduced_class$Book[-ids_train3] %>%
 # 
 # # running rf
 # gospels_rf_book <- train(x = train_x3, y = train_y3,
-#                   method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
+#                  method = "rf", metric = metric, tuneGrid = tunegrid, trControl = trainControl, ntree = ntree, doParallel = T)
 # stopCluster(cl)
 # 
-# # save RDS and then load to speed things up
+# save RDS and then load to speed things up
 # saveRDS(gospels_rf_book, "./models/gospels_rf_book.RDS")
 gospels_rf_book <- readRDS("./models/gospels_rf_book.RDS")
 
@@ -359,16 +354,45 @@ fviz_eig(web_chapter_pca, addlabels = T,
   
 The screeplot above suggests that dimensionality has not been significantly reduced. The first two dimensions account for less than 7% of the variability. Thus, principal components analysis is not particularly useful in this case as the trade-off between dimensionality and variance is extremely steep.    
   
-```{r euclidean distance, echo=FALSE, fig.width=10, fig.height=8}
+```{r chapter cosine similarity, echo=FALSE, fig.width=10, fig.height=8}
 # # Distance
-chapter_distance <- get_dist(web_chapter_mat_scale)
-fviz_dist(chapter_distance, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07")) + 
-  labs(title = "Euclidean Distance of Each Chapter", 
-       fill = "Distance",
-       caption = "Plot 2: Distance matrix of each chapter")
+cosine_similarity_mat_chapter <- sapply(1:89, function(x){
+  sapply(1:89, function(y){
+    cosine_similarity <- textstat_simil(web_chapter_dfm[x], web_chapter_dfm[y], method = "cosine")
+    round(cosine_similarity@x,3)*100
+  })
+})
+rownames(cosine_similarity_mat_chapter) <- rownames(web_chapter_dfm)
+colnames(cosine_similarity_mat_chapter) <- rownames(web_chapter_dfm)
+reorder_cormat <- function(cormat){
+  dd <- as.dist((1-cormat)/2)
+  hc <- hclust(dd)
+  cormat <- cormat[hc$order, hc$order]
+  return(cormat)
+}
+get_upper_tri <- function(cormat){
+  cormat[upper.tri(cormat)] <- NA
+  return(cormat)
+}
+
+cosine_similarity_mat_chapter_reorder <- reorder_cormat(cosine_similarity_mat_chapter) %>%
+  get_upper_tri()
+melted_cosine_sim <- reshape2::melt(cosine_similarity_mat_chapter_reorder, na.rm = T)
+min_value <- floor(min(melted_cosine_sim$value))
+midpoint <- floor((100 - min_value)/2) + min_value
+ggplot(melted_cosine_sim, aes(Var1,Var2, fill = value)) + 
+  geom_tile(color = "white") + 
+  scale_fill_gradient2(low="#FC4E07", high = "#00AFBB", mid = "white", midpoint = midpoint, limit = c(min_value, 100), name = "Cosine \nSimilarity") + 
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 7, hjust = 1),
+        axis.text.y = element_text(size = 7)) + 
+  labs(title = "Cosine Similarity of Each Chapter",
+       caption = "Plot 2: Cosine similarity matrix",
+       x = "Chapters",
+       y = "Chapters")
 ```
   
-As a baseline of comparison, the Euclidean distance between each book was calculated and plotted. For the most part, books and chapters are distinct from one another with the exception of certain chapters that echo each other content-wise such as Mark 11 and Matthew 21. Curiously, Luke 19 and 20 are dissimilar, possibly because the same content is  split between two chapters.  
+As a baseline of comparison, the Euclidean distance between each book was calculated and plotted. For the most part, books and chapters are distinct from one another with the exception of certain chapters that echo each other content-wise such as Mark 11 and Matthew 21. Curiously, Luke 19 and 20 are dissimilar, possibly because the same content is  split between two chapters. It also appears that Luke 3, Matthew 1, and John 13 through 17 are relatively distinct from the rest.  
   
 ```{r silhouette score,fig.height=5, fig.width=7, echo=FALSE}
 fviz_nbclust(web_chapter_mat_scale, kmeans, method = "silhouette", k.max = 28) + 
@@ -394,11 +418,12 @@ fviz_cluster(k5, data = web_chapter_mat_scale, labelsize = 8) +
        caption = "Plot 4: KMeans Clustering of Chapters")
 ```
     
-KMeans clustering was then performed to see whether books can be identified from one another, in which case there ought to be four clusters. Alternatively, the books can also be clustered by content similarity, in which case there should be anywhere between 16 and 28 clusters given that shortest book has 16 chapters, and the longest has 28. This assumes that content order and chapter delimitation is highly similar. The silhouette score plot suggests that the ideal number of clusters is 5. Plotting the five clusters using the first two principal component, the following observations about the clusters can be made:  
+KMeans clustering was then performed without PCA to see whether books can be identified from one another, in which case there ought to be four clusters. Alternatively, the books can also be clustered by content similarity, in which case there should be anywhere between 16 and 28 clusters given that shortest book has 16 chapters, and the longest has 28. This assumes that content order and chapter delimitation is highly similar. The silhouette score plot suggests that the ideal number of clusters is 5. Plotting the five clusters using the first two principal component, the following observations about the clusters can be made:  
 1. Cluster 1 contains chapters on the crucifixion of Jesus.  
 2. Cluster 3 contains chapters on the betrayal of Jesus by Judas and the Last Supper.  
-3. Cluster 2 and 5 are outliers.  
-4. Cluster 4 is most probably an amalgamation of dissimilar chapters, given that most chapters are more different than they are similar, as the Euclidean distance plot suggests.  
+3. Cluster 2 is an outlier. Luke 3 was identified as one of the least cosine similar chapters relative to the rest.  
+4. Cluster 5 is a potentially an outlier.  
+5. Cluster 4 is most probably an amalgamation of other chapters, given that most chapters somewhat, as the cosine similarity matrix suggests.  
 Surprisingly, the KMeans cluster plot do not echo the ability of the random forest models in separating the each of the Gospel books from one another. 
 
 #### Discussion  
@@ -409,7 +434,9 @@ On the issue of authorship, the ability of a random forest model to separate the
   
 However, the book of Mark is often misattributed to Luke and Matthew. This lends some support to the theological argument of Marcan Priority in which the Gospels of Matthew and Luke are based on Mark (Goodacre, 2000; Murai, 2006), and therefore similar. To extend this argument a little further, one might expect to find four distinct clusters when performing kmeans analysis on verses collapsed into clusters, with some chapters from Mark, Luke, and Matthew mixed together.   
   
-However, this expectation was not supported. Instead, some clusters were topical in nature. Murai & Tokosumi (2006) argued that the Gospels contain verses that are echoed in one another in syncoptic fashion. Thus, various chapters across the four Gospel books should exhibit high degrees of similarity after controlling for Bible version. However, it is curious that this was not the case for all topics discussed in the Gospel Books, evident from the Euclidean distance plot, and the optimal number of KMeans clusters. This could be because of chapter delimitation where content covered in one chapter in a book, can be covered in two in another. This reduces the similarity of each chapter as a document. 
+However, this expectation was not supported. Instead, some clusters were topical in nature. Murai & Tokosumi (2006) argued that the Gospels contain verses that are echoed in one another in syncoptic fashion. Thus, various chapters across the four Gospel books could exhibit high degrees of similarity after controlling for Bible version. Furthermore, as the KMeans clustering algorithm minimizes distance across the dimensions, individually similar observations such as the syncoptic chapters are clustered together. This is why the clusters identified mirror to a certain extent, groups of highly similar cells in the cosine similarity matrix. On the other hand, a random forest model might not necessarily be looking to minimize the distance between the observations. Furthermore, the random forest model was trained on verses, and not chapters as the KMeans cluster plot was. There might be broader patterns that the random forest model picked up, which are not observable individually or when it is aggregated.  
+  
+However, it is curious that this was not the case for all topics discussed in the Gospel Books, evident from the Euclidean distance plot, and the optimal number of KMeans clusters. This could be because of chapter delimitation where content covered in one chapter in a book, can be covered in two in another. This reduces the similarity of each chapter as a document.Further, of the two outliers, Luke 1 is uncharacteristically similar to the other outlier, Luke 3, but otherwise typical of other chapters as calculated by cosine similarity. Thus in a high-dimensional space, this sets the two books apart from the others, resulting in their separate classification even though when decomposed into the first two principal components, Luke 1 appears relatively close to the other clusters.  
   
 #### Conclusion  
   
@@ -447,5 +474,4 @@ gospels_rf_book_cm$table %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"))  
 ```
 
-  
 
